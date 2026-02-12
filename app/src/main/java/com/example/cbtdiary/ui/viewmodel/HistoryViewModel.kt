@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,19 +36,23 @@ class HistoryViewModel @Inject constructor(
     }
     
     private fun loadEntries() {
-        _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+        _uiState.update { it.copy(isLoading = true, error = null) }
         getAllEntriesUseCase()
             .onEach { entries ->
-                _uiState.value = _uiState.value.copy(
-                    entries = entries,
-                    isLoading = false
-                )
+                _uiState.update {
+                    it.copy(
+                        entries = entries,
+                        isLoading = false
+                    )
+                }
             }
             .catch { e ->
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = e.message
-                )
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = e.message
+                    )
+                }
             }
             .launchIn(viewModelScope)
     }
@@ -57,8 +62,12 @@ class HistoryViewModel @Inject constructor(
             try {
                 deleteEntryUseCase(entry)
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = e.message)
+                _uiState.update { it.copy(error = e.message) }
             }
         }
+    }
+    
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
     }
 }

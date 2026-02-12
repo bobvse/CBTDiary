@@ -8,8 +8,9 @@ class SaveEntryUseCase @Inject constructor(
     private val repository: DiaryRepository
 ) {
     suspend operator fun invoke(entry: DiaryEntry): Long {
+        // TODO: Заменить на инжектируемый Clock для тестируемости
         val currentTime = System.currentTimeMillis()
-        val entryToSave = if (entry.id == 0L) {
+        val entryToSave = if (entry.id == DiaryEntry.NEW_ENTRY_ID) {
             entry.copy(
                 createdAt = currentTime,
                 updatedAt = currentTime
@@ -18,7 +19,7 @@ class SaveEntryUseCase @Inject constructor(
             entry.copy(updatedAt = currentTime)
         }
         
-        return if (entryToSave.id == 0L) {
+        return if (entryToSave.id == DiaryEntry.NEW_ENTRY_ID) {
             repository.insertEntry(entryToSave)
         } else {
             repository.updateEntry(entryToSave)

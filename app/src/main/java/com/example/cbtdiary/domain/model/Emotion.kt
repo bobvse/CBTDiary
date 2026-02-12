@@ -2,7 +2,7 @@ package com.example.cbtdiary.domain.model
 
 enum class EmotionCategory(val displayName: String, val color: Long) {
     ANGER("Гнев", 0xFFFF4444),
-    FEAR("Страх", 0xFFFFFF00),
+    FEAR("Страх", 0xFFFF9800),
     SADNESS("Грусть", 0xFF87CEEB),
     JOY("Радость", 0xFF4CAF50),
     LOVE("Любовь", 0xFFFF69B4)
@@ -32,6 +32,7 @@ object Emotions {
         Emotion("НЕПРИЯЗНЬ", EmotionCategory.ANGER),
         Emotion("ВОЗМУЩЕНИЕ", EmotionCategory.ANGER),
         Emotion("ОТВРАЩЕНИЕ", EmotionCategory.ANGER),
+        Emotion("НАДМЕННОСТЬ", EmotionCategory.ANGER),
         
         // СТРАХ (FEAR)
         Emotion("УЖАС", EmotionCategory.FEAR),
@@ -46,14 +47,13 @@ object Emotions {
         Emotion("УНИЖЕНИЕ", EmotionCategory.FEAR),
         Emotion("ЗАМЕШАТЕЛЬСТВО", EmotionCategory.FEAR),
         Emotion("РАСТЕРЯННОСТЬ", EmotionCategory.FEAR),
-        Emotion("ВИНА СТЫД", EmotionCategory.FEAR),
+        Emotion("ВИНА/СТЫД", EmotionCategory.FEAR),
         Emotion("СОМНЕНИЕ", EmotionCategory.FEAR),
         Emotion("ЗАСТЕНЧИВОСТЬ", EmotionCategory.FEAR),
         Emotion("ОПАСЕНИЕ", EmotionCategory.FEAR),
         Emotion("СМУЩЕНИЕ", EmotionCategory.FEAR),
         Emotion("СЛОМЛЕННОСТЬ", EmotionCategory.FEAR),
         Emotion("ПОДВОХ", EmotionCategory.FEAR),
-        Emotion("НАДМЕННОСТЬ", EmotionCategory.FEAR),
         Emotion("ОШЕЛОМЛЕННОСТЬ", EmotionCategory.FEAR),
         
         // ГРУСТЬ (SADNESS)
@@ -73,7 +73,7 @@ object Emotions {
         Emotion("СКУКА", EmotionCategory.SADNESS),
         Emotion("БЕЗЫСХОДНОСТЬ", EmotionCategory.SADNESS),
         Emotion("ПЕЧАЛЬ", EmotionCategory.SADNESS),
-        Emotion("ЗАГНАНОСТЬ", EmotionCategory.SADNESS),
+        Emotion("ЗАГНАННОСТЬ", EmotionCategory.SADNESS),
         
         // РАДОСТЬ (JOY)
         Emotion("СЧАСТЬЕ", EmotionCategory.JOY),

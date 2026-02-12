@@ -23,6 +23,7 @@ object DatabaseModule {
             DiaryDatabase::class.java,
             "diary_database"
         )
+            // TODO: Заменить на настоящие миграции перед релизом, иначе данные пользователя будут потеряны
             .fallbackToDestructiveMigration()
             .build()
     }

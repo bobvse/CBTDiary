@@ -1,7 +1,5 @@
 package com.example.cbtdiary.domain.model
 
-import java.util.Date
-
 data class DiaryEntry(
     val id: Long = 0,
     val whatHappened: String,
@@ -9,9 +7,10 @@ data class DiaryEntry(
     val whatIWantedToDo: String,
     val whatIDidActually: String,
     val emotions: List<String>,
-    val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
+    val createdAt: Long = 0L,
+    val updatedAt: Long = 0L
 ) {
-    val formattedDate: String
-        get() = Date(createdAt).toString()
+    companion object {
+        const val NEW_ENTRY_ID = 0L
+    }
 }

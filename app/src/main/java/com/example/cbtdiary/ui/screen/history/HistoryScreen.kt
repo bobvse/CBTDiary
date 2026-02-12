@@ -8,9 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -20,10 +18,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.cbtdiary.domain.model.DiaryEntry
 import com.example.cbtdiary.ui.theme.CBTDiaryTheme
 import com.example.cbtdiary.ui.viewmodel.HistoryViewModel
-import java.text.SimpleDateFormat
-import java.util.*
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
     onNavigateToEntry: (Long) -> Unit,
@@ -31,7 +30,62 @@ fun HistoryScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
+    HistoryScreenContent(
+        entries = uiState.entries,
+        isLoading = uiState.isLoading,
+        error = uiState.error,
+        onNavigateToEntry = onNavigateToEntry,
+        onDeleteEntry = viewModel::deleteEntry,
+        onErrorDismissed = viewModel::clearError
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HistoryScreenContent(
+    entries: List<DiaryEntry>,
+    isLoading: Boolean,
+    error: String?,
+    onNavigateToEntry: (Long) -> Unit,
+    onDeleteEntry: (DiaryEntry) -> Unit,
+    onErrorDismissed: () -> Unit = {}
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    var entryToDelete by remember { mutableStateOf<DiaryEntry?>(null) }
+    
+    LaunchedEffect(error) {
+        error?.let {
+            snackbarHostState.showSnackbar(it)
+            onErrorDismissed()
+        }
+    }
+    
+    // Диалог подтверждения удаления
+    if (entryToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { entryToDelete = null },
+            title = { Text("Удаление записи") },
+            text = { Text("Вы уверены, что хотите удалить эту запись? Это действие нельзя отменить.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        entryToDelete?.let(onDeleteEntry)
+                        entryToDelete = null
+                    }
+                ) {
+                    Text("Удалить", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { entryToDelete = null }) {
+                    Text("Отмена")
+                }
+            }
+        )
+    }
+    
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Дневник КПТ") }
@@ -39,8 +93,7 @@ fun HistoryScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { onNavigateToEntry(0L) },
-                modifier = Modifier.padding(16.dp)
+                onClick = { onNavigateToEntry(DiaryEntry.NEW_ENTRY_ID) }
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -49,42 +102,55 @@ fun HistoryScreen(
             }
         }
     ) { paddingValues ->
-        if (uiState.entries.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Нет записей",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Нажмите + чтобы создать первую запись",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    CircularProgressIndicator()
                 }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(uiState.entries) { entry ->
-                    EntryCard(
-                        entry = entry,
-                        onClick = { onNavigateToEntry(entry.id) },
-                        onDelete = { viewModel.deleteEntry(entry) }
-                    )
+            entries.isEmpty() -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Нет записей",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Нажмите + чтобы создать первую запись",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(entries) { entry ->
+                        EntryCard(
+                            entry = entry,
+                            onClick = { onNavigateToEntry(entry.id) },
+                            onDelete = { entryToDelete = entry }
+                        )
+                    }
                 }
             }
         }
@@ -97,25 +163,29 @@ fun EntryCard(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val dateFormat = SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale("ru", "RU"))
-    val formattedDate = dateFormat.format(Date(entry.createdAt))
+    val formatter = remember {
+        DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm", Locale("ru", "RU"))
+    }
+    val formattedDate = remember(entry.createdAt) {
+        Instant.ofEpochMilli(entry.createdAt)
+            .atZone(ZoneId.systemDefault())
+            .format(formatter)
+    }
     
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp),
+            .heightIn(min = 120.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .clickable(onClick = onClick)
                 .padding(16.dp)
         ) {
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
+                modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = formattedDate,
@@ -130,11 +200,8 @@ fun EntryCard(
                         text = entry.whatHappened,
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
+                        overflow = TextOverflow.Ellipsis
                     )
-                } else {
-                    Spacer(modifier = Modifier.weight(1f))
                 }
                 
                 if (entry.emotions.isNotEmpty()) {
@@ -182,7 +249,6 @@ fun EntryCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, name = "History Screen - With Entries")
 @Composable
 fun HistoryScreenPreviewWithEntries() {
@@ -204,7 +270,7 @@ fun HistoryScreenPreviewWithEntries() {
                 feelings = "Стыд, желание защищаться, напряжение",
                 whatIWantedToDo = "Начать спорить, уйти",
                 whatIDidActually = "Выслушал критику и задал уточняющие вопросы",
-                emotions = listOf("СТЫД", "ТРЕВОГА", "РАЗДРАЖЕНИЕ", "ОБИДА"),
+                emotions = listOf("ВИНА/СТЫД", "ТРЕВОГА", "РАЗДРАЖЕНИЕ", "ОБИДА"),
                 createdAt = System.currentTimeMillis() - 172800000,
                 updatedAt = System.currentTimeMillis() - 172800000
             ),
@@ -214,94 +280,33 @@ fun HistoryScreenPreviewWithEntries() {
                 feelings = "Гордость, удовлетворение, легкость",
                 whatIWantedToDo = "Поделиться радостью с близкими",
                 whatIDidActually = "Позвонил родителям и рассказал о успехе",
-                emotions = listOf("ГОРДОСТЬ", "СЧАСТЬЕ", "УДОВЛЕТВОРЕНИЕ"),
+                emotions = listOf("ГОРДОСТЬ", "СЧАСТЬЕ"),
                 createdAt = System.currentTimeMillis() - 259200000,
                 updatedAt = System.currentTimeMillis() - 259200000
             )
         )
         
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Дневник КПТ") }
-                )
-            },
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = {},
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Добавить запись"
-                    )
-                }
-            }
-        ) { paddingValues ->
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                    items(sampleEntries) { entry ->
-                        EntryCard(
-                            entry = entry,
-                            onClick = {},
-                            onDelete = {}
-                        )
-                    }
-            }
-        }
+        HistoryScreenContent(
+            entries = sampleEntries,
+            isLoading = false,
+            error = null,
+            onNavigateToEntry = {},
+            onDeleteEntry = {}
+        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, name = "History Screen - Empty")
 @Composable
 fun HistoryScreenPreviewEmpty() {
     CBTDiaryTheme {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Дневник КПТ") }
-                )
-            },
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = {},
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Добавить запись"
-                    )
-                }
-            }
-        ) { paddingValues ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Нет записей",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Нажмите + чтобы создать первую запись",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
+        HistoryScreenContent(
+            entries = emptyList(),
+            isLoading = false,
+            error = null,
+            onNavigateToEntry = {},
+            onDeleteEntry = {}
+        )
     }
 }
 

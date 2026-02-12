@@ -6,9 +6,12 @@ import com.example.cbtdiary.domain.model.DiaryEntry
 import com.example.cbtdiary.domain.usecase.GetEntryByIdUseCase
 import com.example.cbtdiary.domain.usecase.SaveEntryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,6 +28,10 @@ data class EntryUiState(
     val error: String? = null
 )
 
+sealed class EntryEvent {
+    data object SaveSuccess : EntryEvent()
+}
+
 @HiltViewModel
 class EntryViewModel @Inject constructor(
     private val getEntryByIdUseCase: GetEntryByIdUseCase,
@@ -34,102 +41,96 @@ class EntryViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(EntryUiState())
     val uiState: StateFlow<EntryUiState> = _uiState.asStateFlow()
     
-    private var currentEntryId: Long = 0L
+    private val _events = Channel<EntryEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
+    
+    private var currentEntryId: Long = DiaryEntry.NEW_ENTRY_ID
     
     fun loadEntry(id: Long) {
-        // Если загружаем ту же запись, не делаем ничего
-        if (id == currentEntryId && id != 0L) {
+        if (id == currentEntryId && id != DiaryEntry.NEW_ENTRY_ID) {
             return
         }
         
         currentEntryId = id
         
-        if (id == 0L) {
-            _uiState.value = EntryUiState()
+        if (id == DiaryEntry.NEW_ENTRY_ID) {
+            _uiState.update { EntryUiState() }
             return
         }
         
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val entry = getEntryByIdUseCase(id)
                 if (entry != null) {
-                    _uiState.value = _uiState.value.copy(
-                        entry = entry,
-                        isLoading = false,
-                        error = null
-                    )
+                    _uiState.update {
+                        it.copy(
+                            entry = entry,
+                            isLoading = false,
+                            error = null
+                        )
+                    }
                 } else {
-                    _uiState.value = _uiState.value.copy(
-                        entry = DiaryEntry(
-                            whatHappened = "",
-                            feelings = "",
-                            whatIWantedToDo = "",
-                            whatIDidActually = "",
-                            emotions = emptyList()
-                        ),
-                        isLoading = false,
-                        error = null
-                    )
+                    _uiState.update { EntryUiState() }
                 }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = e.message ?: "Ошибка загрузки записи"
-                )
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = e.message ?: "Ошибка загрузки записи"
+                    )
+                }
             }
         }
     }
     
     fun updateWhatHappened(text: String) {
-        _uiState.value = _uiState.value.copy(
-            entry = _uiState.value.entry.copy(whatHappened = text)
-        )
+        _uiState.update { it.copy(entry = it.entry.copy(whatHappened = text)) }
     }
     
     fun updateFeelings(text: String) {
-        _uiState.value = _uiState.value.copy(
-            entry = _uiState.value.entry.copy(feelings = text)
-        )
+        _uiState.update { it.copy(entry = it.entry.copy(feelings = text)) }
     }
     
     fun updateWhatIWantedToDo(text: String) {
-        _uiState.value = _uiState.value.copy(
-            entry = _uiState.value.entry.copy(whatIWantedToDo = text)
-        )
+        _uiState.update { it.copy(entry = it.entry.copy(whatIWantedToDo = text)) }
     }
     
     fun updateWhatIDidActually(text: String) {
-        _uiState.value = _uiState.value.copy(
-            entry = _uiState.value.entry.copy(whatIDidActually = text)
-        )
+        _uiState.update { it.copy(entry = it.entry.copy(whatIDidActually = text)) }
     }
     
     fun toggleEmotion(emotion: String) {
-        val currentEmotions = _uiState.value.entry.emotions.toMutableList()
-        if (currentEmotions.contains(emotion)) {
-            currentEmotions.remove(emotion)
-        } else {
-            currentEmotions.add(emotion)
+        _uiState.update { state ->
+            val currentEmotions = state.entry.emotions.toMutableList()
+            if (currentEmotions.contains(emotion)) {
+                currentEmotions.remove(emotion)
+            } else {
+                currentEmotions.add(emotion)
+            }
+            state.copy(entry = state.entry.copy(emotions = currentEmotions))
         }
-        _uiState.value = _uiState.value.copy(
-            entry = _uiState.value.entry.copy(emotions = currentEmotions)
-        )
     }
     
-    fun saveEntry(onSuccess: () -> Unit) {
+    fun saveEntry() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isSaving = true, error = null)
+            _uiState.update { it.copy(isSaving = true, error = null) }
             try {
                 saveEntryUseCase(_uiState.value.entry)
-                _uiState.value = _uiState.value.copy(isSaving = false, error = null)
-                onSuccess()
+                _uiState.update { it.copy(isSaving = false, error = null) }
+                _events.send(EntryEvent.SaveSuccess)
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isSaving = false,
-                    error = e.message ?: "Ошибка сохранения записи"
-                )
+                _uiState.update {
+                    it.copy(
+                        isSaving = false,
+                        error = e.message ?: "Ошибка сохранения записи"
+                    )
+                }
             }
         }
+    }
+    
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
     }
 }

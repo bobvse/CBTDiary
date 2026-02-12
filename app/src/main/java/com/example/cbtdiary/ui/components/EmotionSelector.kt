@@ -29,7 +29,7 @@ fun EmotionSelector(
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        EmotionCategory.values().forEach { category ->
+        EmotionCategory.entries.forEach { category ->
             EmotionCategorySection(
                 category = category,
                 selectedEmotions = selectedEmotions,
