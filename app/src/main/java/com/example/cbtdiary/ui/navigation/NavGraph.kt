@@ -1,18 +1,25 @@
 package com.example.cbtdiary.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.cbtdiary.ui.screen.history.HistoryScreen
 import com.example.cbtdiary.ui.screen.entry.EntryScreen
+import com.example.cbtdiary.ui.screen.history.HistoryScreen
+import com.example.cbtdiary.ui.screen.view.ViewEntryScreen
 
 sealed class Screen(val route: String) {
-    object History : Screen("history")
-    object Entry : Screen("entry/{entryId}") {
-        fun createRoute(entryId: Long = 0L) = "entry/$entryId"
+    data object History : Screen("history")
+    data object NewEntry : Screen("new_entry")
+    data object ViewEntry : Screen("view_entry/{entryId}") {
+        fun createRoute(entryId: Long) = "view_entry/$entryId"
     }
 }
 
@@ -22,25 +29,77 @@ fun NavGraph(navController: NavHostController) {
         navController = navController,
         startDestination = Screen.History.route
     ) {
-        composable(Screen.History.route) {
+        composable(
+            route = Screen.History.route,
+            enterTransition = { fadeIn(spring(stiffness = Spring.StiffnessMedium)) },
+            exitTransition = { fadeOut(spring(stiffness = Spring.StiffnessMedium)) }
+        ) {
             HistoryScreen(
-                onNavigateToEntry = { entryId ->
-                    navController.navigate(Screen.Entry.createRoute(entryId))
+                onNavigateToNewEntry = {
+                    navController.navigate(Screen.NewEntry.route)
+                },
+                onNavigateToViewEntry = { entryId ->
+                    navController.navigate(Screen.ViewEntry.createRoute(entryId))
                 }
             )
         }
-        
+
         composable(
-            route = Screen.Entry.route,
+            route = Screen.NewEntry.route,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Up,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    )
+                ) + fadeIn()
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Down,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                ) + fadeOut()
+            }
+        ) {
+            EntryScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = Screen.ViewEntry.route,
             arguments = listOf(
                 navArgument("entryId") {
                     type = NavType.LongType
-                    defaultValue = 0L
                 }
-            )
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    )
+                ) + fadeIn()
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                ) + fadeOut()
+            }
         ) { backStackEntry ->
             val entryId = backStackEntry.arguments?.getLong("entryId") ?: 0L
-            EntryScreen(
+            ViewEntryScreen(
                 entryId = entryId,
                 onNavigateBack = {
                     navController.popBackStack()

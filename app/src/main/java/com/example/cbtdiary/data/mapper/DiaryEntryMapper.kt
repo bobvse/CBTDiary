@@ -6,11 +6,11 @@ import com.example.cbtdiary.domain.model.DiaryEntry
 fun DiaryEntryEntity.toDomain(): DiaryEntry {
     return DiaryEntry(
         id = id,
-        whatHappened = whatHappened,
-        feelings = feelings,
-        whatIWantedToDo = whatIWantedToDo,
-        whatIDidActually = whatIDidActually,
+        situation = situation,
+        thoughts = thoughts,
         emotions = emotions,
+        bodyReaction = bodyReaction,
+        actionReaction = actionReaction,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
@@ -19,11 +19,11 @@ fun DiaryEntryEntity.toDomain(): DiaryEntry {
 fun DiaryEntry.toEntity(): DiaryEntryEntity {
     return DiaryEntryEntity(
         id = id,
-        whatHappened = whatHappened,
-        feelings = feelings,
-        whatIWantedToDo = whatIWantedToDo,
-        whatIDidActually = whatIDidActually,
+        situation = situation,
+        thoughts = thoughts,
         emotions = emotions,
+        bodyReaction = bodyReaction,
+        actionReaction = actionReaction,
         createdAt = createdAt,
         updatedAt = updatedAt
     )

@@ -8,7 +8,7 @@ import com.example.cbtdiary.data.local.entity.DiaryEntryEntity
 
 @Database(
     entities = [DiaryEntryEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
