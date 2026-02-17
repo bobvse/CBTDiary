@@ -1,7 +1,9 @@
 package com.example.cbtdiary.auth.ui
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cbtdiary.auth.R
 import com.example.cbtdiary.auth.domain.model.AuthMode
 import com.example.cbtdiary.auth.domain.usecase.IsPinSetUseCase
 import com.example.cbtdiary.auth.domain.usecase.SetPinUseCase
@@ -21,12 +23,12 @@ data class AuthUiState(
     val mode: AuthMode = AuthMode.UNLOCK,
     val enteredPin: String = "",
     val isError: Boolean = false,
-    val errorMessage: String = "",
+    @StringRes val errorMessageRes: Int = 0,
     val isSuccess: Boolean = false,
     val isLoading: Boolean = true,
     val isBiometricAvailable: Boolean = false,
-    val title: String = "",
-    val subtitle: String = ""
+    @StringRes val titleRes: Int = 0,
+    @StringRes val subtitleRes: Int = 0
 ) {
     val filledDots: Int get() = enteredPin.length
 }
@@ -62,8 +64,8 @@ class AuthViewModel @Inject constructor(
                 it.copy(
                     mode = mode,
                     isLoading = false,
-                    title = getTitleForMode(mode),
-                    subtitle = getSubtitleForMode(mode)
+                    titleRes = getTitleResForMode(mode),
+                    subtitleRes = getSubtitleResForMode(mode)
                 )
             }
         }
@@ -83,7 +85,7 @@ class AuthViewModel @Inject constructor(
             it.copy(
                 enteredPin = newPin,
                 isError = false,
-                errorMessage = ""
+                errorMessageRes = 0
             )
         }
 
@@ -100,7 +102,7 @@ class AuthViewModel @Inject constructor(
             it.copy(
                 enteredPin = it.enteredPin.dropLast(1),
                 isError = false,
-                errorMessage = ""
+                errorMessageRes = 0
             )
         }
     }
@@ -124,8 +126,8 @@ class AuthViewModel @Inject constructor(
                         it.copy(
                             mode = AuthMode.CONFIRM_PIN,
                             enteredPin = "",
-                            title = getTitleForMode(AuthMode.CONFIRM_PIN),
-                            subtitle = getSubtitleForMode(AuthMode.CONFIRM_PIN)
+                            titleRes = getTitleResForMode(AuthMode.CONFIRM_PIN),
+                            subtitleRes = getSubtitleResForMode(AuthMode.CONFIRM_PIN)
                         )
                     }
                 }
@@ -137,10 +139,10 @@ class AuthViewModel @Inject constructor(
                             delay(400)
                             _events.send(AuthEvent.AuthSuccess)
                         } catch (e: Exception) {
-                            showError("Ошибка сохранения")
+                            showError(R.string.auth_error_save)
                         }
                     } else {
-                        showError("Коды не совпадают")
+                        showError(R.string.auth_error_mismatch)
                         delay(800)
                         setupPin = ""
                         _uiState.update {
@@ -148,9 +150,9 @@ class AuthViewModel @Inject constructor(
                                 mode = AuthMode.SETUP_PIN,
                                 enteredPin = "",
                                 isError = false,
-                                errorMessage = "",
-                                title = getTitleForMode(AuthMode.SETUP_PIN),
-                                subtitle = getSubtitleForMode(AuthMode.SETUP_PIN)
+                                errorMessageRes = 0,
+                                titleRes = getTitleResForMode(AuthMode.SETUP_PIN),
+                                subtitleRes = getSubtitleResForMode(AuthMode.SETUP_PIN)
                             )
                         }
                     }
@@ -162,18 +164,18 @@ class AuthViewModel @Inject constructor(
                         delay(400)
                         _events.send(AuthEvent.AuthSuccess)
                     } else {
-                        showError("Неверный код")
+                        showError(R.string.auth_error_wrong)
                     }
                 }
             }
         }
     }
 
-    private suspend fun showError(message: String) {
+    private suspend fun showError(@StringRes messageRes: Int) {
         _uiState.update {
             it.copy(
                 isError = true,
-                errorMessage = message
+                errorMessageRes = messageRes
             )
         }
         delay(600)
@@ -185,15 +187,17 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    private fun getTitleForMode(mode: AuthMode): String = when (mode) {
-        AuthMode.SETUP_PIN -> "Создайте код-пароль"
-        AuthMode.CONFIRM_PIN -> "Повторите код"
-        AuthMode.UNLOCK -> "Введите код-пароль"
+    @StringRes
+    private fun getTitleResForMode(mode: AuthMode): Int = when (mode) {
+        AuthMode.SETUP_PIN -> R.string.auth_title_setup
+        AuthMode.CONFIRM_PIN -> R.string.auth_title_confirm
+        AuthMode.UNLOCK -> R.string.auth_title_unlock
     }
 
-    private fun getSubtitleForMode(mode: AuthMode): String = when (mode) {
-        AuthMode.SETUP_PIN -> "Придумайте 4-значный код для защиты дневника"
-        AuthMode.CONFIRM_PIN -> "Введите код ещё раз для подтверждения"
-        AuthMode.UNLOCK -> "Для доступа к дневнику"
+    @StringRes
+    private fun getSubtitleResForMode(mode: AuthMode): Int = when (mode) {
+        AuthMode.SETUP_PIN -> R.string.auth_subtitle_setup
+        AuthMode.CONFIRM_PIN -> R.string.auth_subtitle_confirm
+        AuthMode.UNLOCK -> R.string.auth_subtitle_unlock
     }
 }

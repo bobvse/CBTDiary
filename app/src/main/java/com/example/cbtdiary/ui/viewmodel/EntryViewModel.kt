@@ -1,7 +1,9 @@
 package com.example.cbtdiary.ui.viewmodel
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cbtdiary.R
 import com.example.cbtdiary.domain.model.DiaryEntry
 import com.example.cbtdiary.domain.usecase.SaveEntryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,15 +18,15 @@ import javax.inject.Inject
 
 enum class EntryStep(
     val index: Int,
-    val title: String,
-    val subtitle: String,
+    @StringRes val titleRes: Int,
+    @StringRes val subtitleRes: Int,
     val isTextStep: Boolean
 ) {
-    SITUATION(0, "Ситуация", "Что произошло?", true),
-    THOUGHTS(1, "Мысли", "О чём подумал(а) в этот момент?", true),
-    EMOTION(2, "Эмоция", "Что почувствовал(а)?", false),
-    BODY_REACTION(3, "Телесная реакция", "Что почувствовал(а) в теле?", true),
-    ACTION_REACTION(4, "Реакция действия", "Что сделал(а)?", true);
+    SITUATION(0, R.string.step_situation_title, R.string.step_situation_subtitle, true),
+    THOUGHTS(1, R.string.step_thoughts_title, R.string.step_thoughts_subtitle, true),
+    EMOTION(2, R.string.step_emotion_title, R.string.step_emotion_subtitle, false),
+    BODY_REACTION(3, R.string.step_body_reaction_title, R.string.step_body_reaction_subtitle, true),
+    ACTION_REACTION(4, R.string.step_action_reaction_title, R.string.step_action_reaction_subtitle, true);
 
     companion object {
         val totalSteps = entries.size
@@ -41,7 +43,7 @@ data class EntryUiState(
     val currentStep: EntryStep = EntryStep.SITUATION,
     val direction: Int = 1,
     val isSaving: Boolean = false,
-    val error: String? = null
+    @StringRes val errorRes: Int? = null
 )
 
 sealed class EntryEvent {
@@ -125,12 +127,12 @@ class EntryViewModel @Inject constructor(
     fun saveEntry() {
         val state = _uiState.value
         if (state.situation.isBlank()) {
-            _uiState.update { it.copy(error = "Опишите ситуацию") }
+            _uiState.update { it.copy(errorRes = R.string.error_describe_situation) }
             return
         }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true, error = null) }
+            _uiState.update { it.copy(isSaving = true, errorRes = null) }
             try {
                 val entry = DiaryEntry(
                     situation = state.situation,
@@ -146,7 +148,7 @@ class EntryViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isSaving = false,
-                        error = e.message ?: "Ошибка сохранения записи"
+                        errorRes = R.string.error_save_entry
                     )
                 }
             }
@@ -154,6 +156,6 @@ class EntryViewModel @Inject constructor(
     }
 
     fun clearError() {
-        _uiState.update { it.copy(error = null) }
+        _uiState.update { it.copy(errorRes = null) }
     }
 }

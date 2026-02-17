@@ -1,7 +1,9 @@
 package com.example.cbtdiary.ui.viewmodel
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cbtdiary.R
 import com.example.cbtdiary.domain.model.DiaryEntry
 import com.example.cbtdiary.domain.usecase.DeleteEntryUseCase
 import com.example.cbtdiary.domain.usecase.GetEntryByIdUseCase
@@ -18,7 +20,7 @@ import javax.inject.Inject
 data class ViewEntryUiState(
     val entry: DiaryEntry? = null,
     val isLoading: Boolean = false,
-    val error: String? = null
+    @StringRes val errorRes: Int? = null
 )
 
 @HiltViewModel
@@ -44,7 +46,7 @@ class ViewEntryViewModel @Inject constructor(
         loadedEntryId = id
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(isLoading = true, errorRes = null) }
             try {
                 val entry = getEntryByIdUseCase(id)
                 _uiState.update {
@@ -53,11 +55,11 @@ class ViewEntryViewModel @Inject constructor(
                         isLoading = false
                     )
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        error = e.message ?: "Ошибка загрузки записи"
+                        errorRes = R.string.error_load_entry
                     )
                 }
             }
@@ -70,9 +72,9 @@ class ViewEntryViewModel @Inject constructor(
             try {
                 deleteEntryUseCase(entry)
                 _events.send(ViewEvent.DeleteSuccess)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiState.update {
-                    it.copy(error = e.message ?: "Ошибка удаления")
+                    it.copy(errorRes = R.string.error_delete_entry)
                 }
             }
         }

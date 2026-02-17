@@ -20,18 +20,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Backspace
+import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -50,14 +47,17 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.cbtdiary.auth.R
 import com.example.cbtdiary.auth.domain.model.AuthMode
 import kotlin.math.roundToInt
 
@@ -85,7 +85,6 @@ fun AuthScreen(
         }
     }
 
-    // Auto-trigger biometric on unlock mode
     val showBiometric = uiState.mode == AuthMode.UNLOCK
             && uiState.isBiometricAvailable
             && !uiState.isSuccess
@@ -114,9 +113,9 @@ private fun showBiometricPrompt(
     val activity = context as? FragmentActivity ?: return
 
     val promptInfo = BiometricPrompt.PromptInfo.Builder()
-        .setTitle("Вход в дневник")
-        .setSubtitle("Используйте отпечаток пальца")
-        .setNegativeButtonText("Использовать код")
+        .setTitle(context.getString(R.string.biometric_title))
+        .setSubtitle(context.getString(R.string.biometric_subtitle))
+        .setNegativeButtonText(context.getString(R.string.biometric_negative))
         .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
         .build()
 
@@ -172,7 +171,6 @@ private fun AuthScreenContent(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Lock icon
                 Box(
                     modifier = Modifier
                         .size(64.dp)
@@ -181,7 +179,10 @@ private fun AuthScreenContent(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (uiState.isSuccess) "✓" else "🔒",
+                        text = if (uiState.isSuccess)
+                            stringResource(R.string.auth_icon_success)
+                        else
+                            stringResource(R.string.auth_icon_lock),
                         fontSize = 28.sp
                     )
                 }
@@ -189,14 +190,14 @@ private fun AuthScreenContent(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 AnimatedContent(
-                    targetState = uiState.title,
+                    targetState = uiState.titleRes,
                     transitionSpec = {
                         fadeIn(tween(200)) togetherWith fadeOut(tween(200))
                     },
                     label = "title"
-                ) { title ->
+                ) { titleRes ->
                     Text(
-                        text = title,
+                        text = if (titleRes != 0) stringResource(titleRes) else "",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
@@ -207,14 +208,14 @@ private fun AuthScreenContent(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 AnimatedContent(
-                    targetState = uiState.subtitle,
+                    targetState = uiState.subtitleRes,
                     transitionSpec = {
                         fadeIn(tween(200)) togetherWith fadeOut(tween(200))
                     },
                     label = "subtitle"
-                ) { subtitle ->
+                ) { subtitleRes ->
                     Text(
-                        text = subtitle,
+                        text = if (subtitleRes != 0) stringResource(subtitleRes) else "",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -223,7 +224,6 @@ private fun AuthScreenContent(
 
                 Spacer(modifier = Modifier.height(40.dp))
 
-                // PIN dots
                 Row(
                     modifier = Modifier.offset {
                         IntOffset(shakeOffset.value.roundToInt(), 0)
@@ -242,16 +242,15 @@ private fun AuthScreenContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Error message
                 AnimatedContent(
-                    targetState = uiState.errorMessage,
+                    targetState = uiState.errorMessageRes,
                     transitionSpec = {
                         fadeIn(tween(200)) togetherWith fadeOut(tween(100))
                     },
                     label = "error"
-                ) { error ->
+                ) { errorRes ->
                     Text(
-                        text = error,
+                        text = if (errorRes != 0) stringResource(errorRes) else "",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                         fontWeight = FontWeight.Medium,
@@ -260,7 +259,6 @@ private fun AuthScreenContent(
                 }
             }
 
-            // Number pad
             NumberPad(
                 onDigitClick = onDigitClick,
                 onDeleteClick = onDeleteClick,
@@ -323,25 +321,21 @@ private fun NumberPad(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Row 1: 1 2 3
         NumberRow(
             digits = listOf(1, 2, 3),
             onDigitClick = onDigitClick,
             enabled = enabled
         )
-        // Row 2: 4 5 6
         NumberRow(
             digits = listOf(4, 5, 6),
             onDigitClick = onDigitClick,
             enabled = enabled
         )
-        // Row 3: 7 8 9
         NumberRow(
             digits = listOf(7, 8, 9),
             onDigitClick = onDigitClick,
             enabled = enabled
         )
-        // Row 4: biometric/empty, 0, delete
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -350,7 +344,7 @@ private fun NumberPad(
             if (showBiometric) {
                 ActionButton(
                     icon = Icons.Default.Fingerprint,
-                    contentDescription = "Отпечаток пальца",
+                    contentDescription = stringResource(R.string.cd_fingerprint),
                     onClick = onBiometricClick,
                     enabled = enabled,
                     tint = MaterialTheme.colorScheme.primary
@@ -366,8 +360,8 @@ private fun NumberPad(
             )
 
             ActionButton(
-                icon = Icons.Default.Backspace,
-                contentDescription = "Удалить",
+                icon = Icons.AutoMirrored.Filled.Backspace,
+                contentDescription = stringResource(R.string.cd_backspace),
                 onClick = onDeleteClick,
                 enabled = enabled,
                 tint = MaterialTheme.colorScheme.onSurface
@@ -448,4 +442,57 @@ private fun ActionButton(
             tint = tint
         )
     }
+}
+
+@Preview(showBackground = true, name = "Auth Screen - Unlock")
+@Composable
+private fun AuthScreenUnlockPreview() {
+    AuthScreenContent(
+        uiState = AuthUiState(
+            mode = AuthMode.UNLOCK,
+            titleRes = R.string.auth_title_unlock,
+            subtitleRes = R.string.auth_subtitle_unlock,
+            isLoading = false,
+            isBiometricAvailable = true
+        ),
+        onDigitClick = {},
+        onDeleteClick = {},
+        onBiometricClick = {}
+    )
+}
+
+@Preview(showBackground = true, name = "Auth Screen - Setup")
+@Composable
+private fun AuthScreenSetupPreview() {
+    AuthScreenContent(
+        uiState = AuthUiState(
+            mode = AuthMode.SETUP_PIN,
+            titleRes = R.string.auth_title_setup,
+            subtitleRes = R.string.auth_subtitle_setup,
+            isLoading = false,
+            enteredPin = "12"
+        ),
+        onDigitClick = {},
+        onDeleteClick = {},
+        onBiometricClick = {}
+    )
+}
+
+@Preview(showBackground = true, name = "Auth Screen - Error")
+@Composable
+private fun AuthScreenErrorPreview() {
+    AuthScreenContent(
+        uiState = AuthUiState(
+            mode = AuthMode.UNLOCK,
+            titleRes = R.string.auth_title_unlock,
+            subtitleRes = R.string.auth_subtitle_unlock,
+            isLoading = false,
+            isError = true,
+            errorMessageRes = R.string.auth_error_wrong,
+            enteredPin = "1234"
+        ),
+        onDigitClick = {},
+        onDeleteClick = {},
+        onBiometricClick = {}
+    )
 }

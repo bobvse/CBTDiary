@@ -55,13 +55,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.cbtdiary.R
 import com.example.cbtdiary.domain.model.DiaryEntry
 import com.example.cbtdiary.domain.model.Emotions
+import com.example.cbtdiary.ui.theme.CBTDiaryTheme
 import com.example.cbtdiary.ui.viewmodel.HistoryUiState
 import com.example.cbtdiary.ui.viewmodel.HistoryViewModel
 import java.time.DayOfWeek
@@ -118,7 +122,7 @@ fun HistoryScreenContent(
             TopAppBar(
                 title = {
                     Text(
-                        "Дневник СМЭР",
+                        stringResource(R.string.history_title),
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -135,7 +139,7 @@ fun HistoryScreenContent(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Добавить запись"
+                    contentDescription = stringResource(R.string.cd_add_entry)
                 )
             }
         }
@@ -171,7 +175,7 @@ fun HistoryScreenContent(
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
                     val selectedDateFormatted = remember(uiState.selectedDate) {
-                        val formatter = DateTimeFormatter.ofPattern("d MMMM", Locale("ru", "RU"))
+                        val formatter = DateTimeFormatter.ofPattern("d MMMM", Locale.forLanguageTag("ru-RU"))
                         uiState.selectedDate.format(formatter)
                     }
                     val count = uiState.selectedDateEntries.size
@@ -217,13 +221,13 @@ fun HistoryScreenContent(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = "Нет записей",
+                                    text = stringResource(R.string.history_no_entries),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "Нажмите + чтобы добавить",
+                                    text = stringResource(R.string.history_tap_to_add),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
@@ -257,7 +261,7 @@ fun CalendarWidget(
     onNextMonth: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val locale = Locale("ru", "RU")
+    val locale = Locale.forLanguageTag("ru-RU")
     val monthName = remember(currentMonth) {
         currentMonth.month.getDisplayName(TextStyle.FULL_STANDALONE, locale)
             .replaceFirstChar { it.titlecase(locale) }
@@ -282,7 +286,7 @@ fun CalendarWidget(
                 IconButton(onClick = onPreviousMonth) {
                     Icon(
                         Icons.Default.ChevronLeft,
-                        contentDescription = "Предыдущий месяц",
+                        contentDescription = stringResource(R.string.cd_previous_month),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -294,7 +298,7 @@ fun CalendarWidget(
                 IconButton(onClick = onNextMonth) {
                     Icon(
                         Icons.Default.ChevronRight,
-                        contentDescription = "Следующий месяц",
+                        contentDescription = stringResource(R.string.cd_next_month),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -441,7 +445,7 @@ fun EntryCard(
     modifier: Modifier = Modifier
 ) {
     val formatter = remember {
-        DateTimeFormatter.ofPattern("HH:mm", Locale("ru", "RU"))
+        DateTimeFormatter.ofPattern("HH:mm", Locale.forLanguageTag("ru-RU"))
     }
     val formattedTime = remember(entry.createdAt) {
         Instant.ofEpochMilli(entry.createdAt)
@@ -533,5 +537,70 @@ fun EntryCard(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "History Screen - With Entries")
+@Composable
+private fun HistoryScreenPreview() {
+    CBTDiaryTheme {
+        HistoryScreenContent(
+            uiState = HistoryUiState(
+                entries = listOf(
+                    DiaryEntry(
+                        id = 1L,
+                        situation = "Партнер сказал обидные слова",
+                        thoughts = "Я не достаточно хорош",
+                        emotions = listOf("ОБИДА", "ТРЕВОГА", "РАЗДРАЖЕНИЕ"),
+                        bodyReaction = "Напряжение в плечах",
+                        actionReaction = "Попытался объяснить свою позицию",
+                        createdAt = System.currentTimeMillis(),
+                        updatedAt = System.currentTimeMillis()
+                    )
+                )
+            ),
+            onNavigateToNewEntry = {},
+            onNavigateToViewEntry = {},
+            onSelectDate = {},
+            onPreviousMonth = {},
+            onNextMonth = {},
+            onErrorDismissed = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "History Screen - Empty")
+@Composable
+private fun HistoryScreenEmptyPreview() {
+    CBTDiaryTheme {
+        HistoryScreenContent(
+            uiState = HistoryUiState(),
+            onNavigateToNewEntry = {},
+            onNavigateToViewEntry = {},
+            onSelectDate = {},
+            onPreviousMonth = {},
+            onNextMonth = {},
+            onErrorDismissed = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Entry Card")
+@Composable
+private fun EntryCardPreview() {
+    CBTDiaryTheme {
+        EntryCard(
+            entry = DiaryEntry(
+                id = 1L,
+                situation = "Коллега критиковал мою работу на совещании",
+                thoughts = "Я плохо справляюсь",
+                emotions = listOf("ОБИДА", "ТРЕВОГА", "РАЗДРАЖЕНИЕ", "ЗЛОСТЬ"),
+                bodyReaction = "Учащённое сердцебиение",
+                actionReaction = "Выслушал и задал вопросы",
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis()
+            ),
+            onClick = {}
+        )
     }
 }

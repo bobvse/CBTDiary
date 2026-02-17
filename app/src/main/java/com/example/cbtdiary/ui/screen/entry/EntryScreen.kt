@@ -14,7 +14,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -62,13 +61,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.cbtdiary.R
 import com.example.cbtdiary.ui.components.EmotionSelector
+import com.example.cbtdiary.ui.theme.CBTDiaryTheme
 import com.example.cbtdiary.ui.viewmodel.EntryEvent
 import com.example.cbtdiary.ui.viewmodel.EntryStep
 import com.example.cbtdiary.ui.viewmodel.EntryUiState
@@ -139,10 +143,11 @@ fun EntryScreenContent(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val context = LocalContext.current
 
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let {
-            snackbarHostState.showSnackbar(it)
+    LaunchedEffect(uiState.errorRes) {
+        uiState.errorRes?.let {
+            snackbarHostState.showSnackbar(context.getString(it))
             onErrorDismissed()
         }
     }
@@ -182,13 +187,17 @@ fun EntryScreenContent(
                                 Icons.Default.Close
                             else
                                 Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад"
+                            contentDescription = stringResource(R.string.cd_back)
                         )
                     }
                 },
                 actions = {
                     Text(
-                        text = "${uiState.currentStep.index + 1} / ${EntryStep.totalSteps}",
+                        text = stringResource(
+                            R.string.step_counter,
+                            uiState.currentStep.index + 1,
+                            EntryStep.totalSteps
+                        ),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(end = 16.dp)
@@ -250,30 +259,34 @@ fun EntryScreenContent(
                     EntryStep.SITUATION -> TextStepContent(
                         value = uiState.situation,
                         onValueChange = onSituationChange,
-                        hint = "Опишите ситуацию, которая произошла. Что случилось? Где вы были? Кто участвовал?",
+                        hint = stringResource(R.string.entry_hint_situation),
                         modifier = Modifier.fillMaxSize()
                     )
+
                     EntryStep.THOUGHTS -> TextStepContent(
                         value = uiState.thoughts,
                         onValueChange = onThoughtsChange,
-                        hint = "Какие мысли пришли в голову? О чём вы подумали в тот момент?",
+                        hint = stringResource(R.string.entry_hint_thoughts),
                         modifier = Modifier.fillMaxSize()
                     )
+
                     EntryStep.EMOTION -> EmotionStepContent(
                         selectedEmotions = uiState.emotions,
                         onEmotionToggle = onEmotionToggle,
                         modifier = Modifier.fillMaxSize()
                     )
+
                     EntryStep.BODY_REACTION -> TextStepContent(
                         value = uiState.bodyReaction,
                         onValueChange = onBodyReactionChange,
-                        hint = "Что вы почувствовали в теле? Напряжение, дрожь, учащённое сердцебиение, ком в горле?",
+                        hint = stringResource(R.string.entry_hint_body_reaction),
                         modifier = Modifier.fillMaxSize()
                     )
+
                     EntryStep.ACTION_REACTION -> TextStepContent(
                         value = uiState.actionReaction,
                         onValueChange = onActionReactionChange,
-                        hint = "Что вы сделали? Как отреагировали? Какие действия предприняли?",
+                        hint = stringResource(R.string.entry_hint_action_reaction),
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -298,14 +311,14 @@ private fun StepIndicator(
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = currentStep.title,
+            text = stringResource(currentStep.titleRes),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = currentStep.subtitle,
+            text = stringResource(currentStep.subtitleRes),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -372,7 +385,7 @@ private fun TextStepContent(
             maxLines = 12,
             placeholder = {
                 Text(
-                    "Начните писать...",
+                    stringResource(R.string.entry_placeholder),
                     style = MaterialTheme.typography.bodyLarge
                 )
             },
@@ -411,14 +424,14 @@ private fun EmotionStepContent(
     ) {
         if (selectedEmotions.isNotEmpty()) {
             Text(
-                text = "Выбрано: ${selectedEmotions.size}",
+                text = stringResource(R.string.entry_emotions_selected, selectedEmotions.size),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
         } else {
             Text(
-                text = "Выберите одну или несколько эмоций",
+                text = stringResource(R.string.entry_emotions_hint),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 modifier = Modifier
@@ -465,7 +478,7 @@ private fun BottomNavigation(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Назад")
+                Text(stringResource(R.string.action_back))
             }
         }
 
@@ -485,7 +498,7 @@ private fun BottomNavigation(
                         strokeWidth = 2.dp
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Сохранение...")
+                    Text(stringResource(R.string.action_saving))
                 } else {
                     Icon(
                         imageVector = Icons.Default.Check,
@@ -493,7 +506,7 @@ private fun BottomNavigation(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Сохранить")
+                    Text(stringResource(R.string.action_save))
                 }
             }
         } else {
@@ -502,7 +515,7 @@ private fun BottomNavigation(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Text("Далее")
+                Text(stringResource(R.string.action_next))
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -511,5 +524,51 @@ private fun BottomNavigation(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Entry Screen - Situation Step")
+@Composable
+private fun EntryScreenPreview() {
+    CBTDiaryTheme {
+        EntryScreenContent(
+            uiState = EntryUiState(
+                situation = "Партнер сказал обидные слова",
+                currentStep = EntryStep.SITUATION
+            ),
+            onNavigateBack = {},
+            onNextStep = {},
+            onPreviousStep = {},
+            onSituationChange = {},
+            onThoughtsChange = {},
+            onEmotionToggle = {},
+            onBodyReactionChange = {},
+            onActionReactionChange = {},
+            onSave = {},
+            onErrorDismissed = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Entry Screen - Emotion Step")
+@Composable
+private fun EntryScreenEmotionPreview() {
+    CBTDiaryTheme {
+        EntryScreenContent(
+            uiState = EntryUiState(
+                emotions = listOf("ОБИДА", "ТРЕВОГА"),
+                currentStep = EntryStep.EMOTION
+            ),
+            onNavigateBack = {},
+            onNextStep = {},
+            onPreviousStep = {},
+            onSituationChange = {},
+            onThoughtsChange = {},
+            onEmotionToggle = {},
+            onBodyReactionChange = {},
+            onActionReactionChange = {},
+            onSave = {},
+            onErrorDismissed = {}
+        )
     }
 }

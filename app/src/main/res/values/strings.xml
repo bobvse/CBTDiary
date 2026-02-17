@@ -1,3 +1,61 @@
 <resources>
     <string name="app_name">CBTDiary</string>
+
+    <!-- General -->
+    <string name="cd_back">Назад</string>
+    <string name="cd_delete">Удалить</string>
+    <string name="action_cancel">Отмена</string>
+    <string name="action_delete">Удалить</string>
+
+    <!-- History Screen -->
+    <string name="history_title">Дневник СМЭР</string>
+    <string name="cd_add_entry">Добавить запись</string>
+    <string name="history_no_entries">Нет записей</string>
+    <string name="history_tap_to_add">Нажмите + чтобы добавить</string>
+    <string name="cd_previous_month">Предыдущий месяц</string>
+    <string name="cd_next_month">Следующий месяц</string>
+    <string name="date_format_day_month">d MMMM</string>
+    <string name="date_format_time">HH:mm</string>
+    <string name="date_format_full">d MMMM yyyy, HH:mm</string>
+
+    <!-- Entry Screen -->
+    <string name="step_counter">%1$d / %2$d</string>
+    <string name="entry_placeholder">Начните писать…</string>
+    <string name="entry_hint_situation">Опишите ситуацию, которая произошла. Что случилось? Где вы были? Кто участвовал?</string>
+    <string name="entry_hint_thoughts">Какие мысли пришли в голову? О чём вы подумали в тот момент?</string>
+    <string name="entry_hint_body_reaction">Что вы почувствовали в теле? Напряжение, дрожь, учащённое сердцебиение, ком в горле?</string>
+    <string name="entry_hint_action_reaction">Что вы сделали? Как отреагировали? Какие действия предприняли?</string>
+    <string name="entry_emotions_selected">Выбрано: %1$d</string>
+    <string name="entry_emotions_hint">Выберите одну или несколько эмоций</string>
+    <string name="action_back">Назад</string>
+    <string name="action_saving">Сохранение…</string>
+    <string name="action_save">Сохранить</string>
+    <string name="action_next">Далее</string>
+    <string name="error_describe_situation">Опишите ситуацию</string>
+    <string name="error_save_entry">Ошибка сохранения записи</string>
+    <string name="error_load_entry">Ошибка загрузки записи</string>
+    <string name="error_delete_entry">Ошибка удаления</string>
+
+    <!-- Entry Steps -->
+    <string name="step_situation_title">Ситуация</string>
+    <string name="step_situation_subtitle">Что произошло?</string>
+    <string name="step_thoughts_title">Мысли</string>
+    <string name="step_thoughts_subtitle">О чём подумал(а) в этот момент?</string>
+    <string name="step_emotion_title">Эмоция</string>
+    <string name="step_emotion_subtitle">Что почувствовал(а)?</string>
+    <string name="step_body_reaction_title">Телесная реакция</string>
+    <string name="step_body_reaction_subtitle">Что почувствовал(а) в теле?</string>
+    <string name="step_action_reaction_title">Реакция действия</string>
+    <string name="step_action_reaction_subtitle">Что сделал(а)?</string>
+
+    <!-- View Entry Screen -->
+    <string name="view_entry_title">Запись</string>
+    <string name="view_entry_not_found">Запись не найдена</string>
+    <string name="delete_dialog_title">Удаление записи</string>
+    <string name="delete_dialog_message">Вы уверены, что хотите удалить эту запись? Это действие нельзя отменить.</string>
+    <string name="section_situation">Ситуация</string>
+    <string name="section_thoughts">Мысли</string>
+    <string name="section_emotions">Эмоции</string>
+    <string name="section_body_reaction">Телесная реакция</string>
+    <string name="section_action_reaction">Реакция действия</string>
 </resources>
