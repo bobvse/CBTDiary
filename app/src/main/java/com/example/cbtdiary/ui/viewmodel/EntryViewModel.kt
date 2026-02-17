@@ -14,12 +14,17 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-enum class EntryStep(val index: Int, val title: String, val subtitle: String) {
-    SITUATION(0, "Ситуация", "Что произошло?"),
-    THOUGHTS(1, "Мысли", "О чём подумал(а) в этот момент?"),
-    EMOTION(2, "Эмоция", "Что почувствовал(а)?"),
-    BODY_REACTION(3, "Телесная реакция", "Что почувствовал(а) в теле?"),
-    ACTION_REACTION(4, "Реакция действия", "Что сделал(а)?");
+enum class EntryStep(
+    val index: Int,
+    val title: String,
+    val subtitle: String,
+    val isTextStep: Boolean
+) {
+    SITUATION(0, "Ситуация", "Что произошло?", true),
+    THOUGHTS(1, "Мысли", "О чём подумал(а) в этот момент?", true),
+    EMOTION(2, "Эмоция", "Что почувствовал(а)?", false),
+    BODY_REACTION(3, "Телесная реакция", "Что почувствовал(а) в теле?", true),
+    ACTION_REACTION(4, "Реакция действия", "Что сделал(а)?", true);
 
     companion object {
         val totalSteps = entries.size

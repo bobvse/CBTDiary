@@ -26,8 +26,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -57,9 +57,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.cbtdiary.ui.components.EmotionSelector
@@ -67,6 +73,16 @@ import com.example.cbtdiary.ui.viewmodel.EntryEvent
 import com.example.cbtdiary.ui.viewmodel.EntryStep
 import com.example.cbtdiary.ui.viewmodel.EntryUiState
 import com.example.cbtdiary.ui.viewmodel.EntryViewModel
+import kotlinx.coroutines.delay
+
+private fun capitalizeFirstChar(text: String): String {
+    if (text.isEmpty()) return text
+    val first = text[0]
+    if (first.isLowerCase()) {
+        return first.titlecase() + text.substring(1)
+    }
+    return text
+}
 
 @Composable
 fun EntryScreen(
@@ -106,7 +122,7 @@ fun EntryScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun EntryScreenContent(
     uiState: EntryUiState,
@@ -122,11 +138,20 @@ fun EntryScreenContent(
     onErrorDismissed: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
             snackbarHostState.showSnackbar(it)
             onErrorDismissed()
+        }
+    }
+
+    // Proactively manage keyboard visibility based on current step
+    LaunchedEffect(uiState.currentStep) {
+        if (!uiState.currentStep.isTextStep) {
+            delay(50)
+            keyboardController?.hide()
         }
     }
 
@@ -287,6 +312,7 @@ private fun StepIndicator(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun TextStepContent(
     value: String,
@@ -294,6 +320,19 @@ private fun TextStepContent(
     hint: String,
     modifier: Modifier = Modifier
 ) {
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(Unit) {
+        delay(150)
+        try {
+            focusRequester.requestFocus()
+            keyboardController?.show()
+        } catch (_: Exception) {
+            // FocusRequester may not be attached yet in rare cases
+        }
+    }
+
     Column(
         modifier = modifier
             .padding(horizontal = 24.dp)
@@ -322,12 +361,26 @@ private fun TextStepContent(
 
         OutlinedTextField(
             value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
+            onValueChange = { newText ->
+                onValueChange(capitalizeFirstChar(newText))
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
+            textStyle = MaterialTheme.typography.bodyLarge,
             minLines = 6,
             maxLines = 12,
-            placeholder = { Text("Начните писать...") },
+            placeholder = {
+                Text(
+                    "Начните писать...",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            },
             shape = RoundedCornerShape(16.dp),
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+                keyboardType = KeyboardType.Text
+            ),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
@@ -338,12 +391,19 @@ private fun TextStepContent(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun EmotionStepContent(
     selectedEmotions: List<String>,
     onEmotionToggle: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(Unit) {
+        keyboardController?.hide()
+    }
+
     Column(
         modifier = modifier
             .padding(horizontal = 24.dp)
@@ -412,7 +472,7 @@ private fun BottomNavigation(
         if (currentStep == EntryStep.ACTION_REACTION) {
             Button(
                 onClick = { if (!isSaving) onSave() },
-                modifier = Modifier.weight(if (currentStep != EntryStep.SITUATION) 1f else 1f),
+                modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary
@@ -439,7 +499,7 @@ private fun BottomNavigation(
         } else {
             Button(
                 onClick = onNext,
-                modifier = Modifier.weight(if (currentStep != EntryStep.SITUATION) 1f else 1f),
+                modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text("Далее")
@@ -452,22 +512,4 @@ private fun BottomNavigation(
             }
         }
     }
-}
-
-@Composable
-private fun StepDot(
-    isActive: Boolean,
-    isCompleted: Boolean
-) {
-    val color = when {
-        isActive -> MaterialTheme.colorScheme.primary
-        isCompleted -> MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-        else -> MaterialTheme.colorScheme.outlineVariant
-    }
-    Box(
-        modifier = Modifier
-            .size(if (isActive) 10.dp else 8.dp)
-            .clip(CircleShape)
-            .background(color)
-    )
 }
