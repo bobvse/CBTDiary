@@ -1,0 +1,25 @@
+<resources>
+    <!-- Auth Titles -->
+    <string name="auth_title_setup">Создайте код-пароль</string>
+    <string name="auth_title_confirm">Повторите код</string>
+    <string name="auth_title_unlock">Введите код-пароль</string>
+    <string name="auth_subtitle_setup">Придумайте 4-значный код для защиты дневника</string>
+    <string name="auth_subtitle_confirm">Введите код ещё раз для подтверждения</string>
+    <string name="auth_subtitle_unlock">Для доступа к дневнику</string>
+
+    <!-- Auth Errors -->
+    <string name="auth_error_save">Ошибка сохранения</string>
+    <string name="auth_error_mismatch">Коды не совпадают</string>
+    <string name="auth_error_wrong">Неверный код</string>
+
+    <!-- Biometric -->
+    <string name="biometric_title">Вход в дневник</string>
+    <string name="biometric_subtitle">Используйте отпечаток пальца</string>
+    <string name="biometric_negative">Использовать код</string>
+    <string name="cd_fingerprint">Отпечаток пальца</string>
+    <string name="cd_backspace">Удалить</string>
+
+    <!-- Icons -->
+    <string name="auth_icon_success">✓</string>
+    <string name="auth_icon_lock">🔒</string>
+</resources>
