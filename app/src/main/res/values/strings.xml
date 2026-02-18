@@ -58,4 +58,20 @@
     <string name="section_emotions">Эмоции</string>
     <string name="section_body_reaction">Телесная реакция</string>
     <string name="section_action_reaction">Реакция действия</string>
+
+    <!-- Bottom Navigation -->
+    <string name="tab_diary">Дневник</string>
+    <string name="tab_conceptualization">Концептуализация</string>
+    <string name="tab_coping_cards">Копинг карточки</string>
+
+    <!-- Conceptualization Screen (Stub) -->
+    <string name="conceptualization_title">Концептуализация</string>
+    <string name="conceptualization_subtitle">Структурируйте свои мысли и убеждения</string>
+    <string name="conceptualization_description">Здесь вы сможете создать когнитивную концептуализацию — наглядную схему связей между ситуациями, мыслями, эмоциями и поведением.</string>
+    <string name="coming_soon">Скоро</string>
+
+    <!-- Coping Cards Screen (Stub) -->
+    <string name="coping_cards_title">Копинг карточки</string>
+    <string name="coping_cards_subtitle">Ваши стратегии совладания</string>
+    <string name="coping_cards_description">Создавайте персональные карточки с полезными мыслями и стратегиями, которые помогут в сложных ситуациях.</string>
 </resources>

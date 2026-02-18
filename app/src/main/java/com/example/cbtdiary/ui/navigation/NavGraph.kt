@@ -13,12 +13,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.cbtdiary.auth.ui.AuthScreen
 import com.example.cbtdiary.ui.screen.entry.EntryScreen
-import com.example.cbtdiary.ui.screen.history.HistoryScreen
+import com.example.cbtdiary.ui.screen.main.MainScreen
 import com.example.cbtdiary.ui.screen.view.ViewEntryScreen
 
 sealed class Screen(val route: String) {
     data object Auth : Screen("auth")
-    data object History : Screen("history")
+    data object Main : Screen("main")
     data object NewEntry : Screen("new_entry")
     data object ViewEntry : Screen("view_entry/{entryId}") {
         fun createRoute(entryId: Long) = "view_entry/$entryId"
@@ -38,7 +38,7 @@ fun NavGraph(navController: NavHostController) {
         ) {
             AuthScreen(
                 onAuthSuccess = {
-                    navController.navigate(Screen.History.route) {
+                    navController.navigate(Screen.Main.route) {
                         popUpTo(Screen.Auth.route) { inclusive = true }
                     }
                 }
@@ -46,11 +46,11 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable(
-            route = Screen.History.route,
+            route = Screen.Main.route,
             enterTransition = { fadeIn(spring(stiffness = Spring.StiffnessMedium)) },
             exitTransition = { fadeOut(spring(stiffness = Spring.StiffnessMedium)) }
         ) {
-            HistoryScreen(
+            MainScreen(
                 onNavigateToNewEntry = {
                     navController.navigate(Screen.NewEntry.route)
                 },
