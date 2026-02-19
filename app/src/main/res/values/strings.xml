@@ -64,10 +64,126 @@
     <string name="tab_conceptualization">Концептуализация</string>
     <string name="tab_coping_cards">Копинг карточки</string>
 
-    <!-- Conceptualization Screen (Stub) -->
+    <!-- Conceptualization Screen -->
     <string name="conceptualization_title">Концептуализация</string>
-    <string name="conceptualization_subtitle">Структурируйте свои мысли и убеждения</string>
-    <string name="conceptualization_description">Здесь вы сможете создать когнитивную концептуализацию — наглядную схему связей между ситуациями, мыслями, эмоциями и поведением.</string>
+    <string name="conceptualization_subtitle">Когнитивная модель по Беку</string>
+    <string name="conceptualization_empty_title">Создайте свою первую концептуализацию</string>
+    <string name="conceptualization_empty_description">Когнитивная концептуализация поможет увидеть связи между вашими мыслями, эмоциями и поведением. Начните заполнять модель — это первый шаг к пониманию себя.</string>
+    <string name="conceptualization_create">Создать концептуализацию</string>
+    <string name="conceptualization_edit">Редактировать</string>
+    <string name="conceptualization_version">Версия %1$d</string>
+    <string name="conceptualization_updated">Обновлено: %1$s</string>
+    <string name="conceptualization_and_more">и ещё %1$d</string>
+    <string name="cd_edit_concept">Редактировать концептуализацию</string>
+    <string name="cd_version_history">История версий</string>
+
+    <!-- Beck Diagram Sections -->
+    <string name="section_background">Предыстория</string>
+    <string name="section_background_hint">Значимые ранние события и переживания</string>
+    <string name="section_core_beliefs">Базовые убеждения</string>
+    <string name="section_core_beliefs_hint">Глубинные убеждения о себе, других, мире</string>
+    <string name="section_intermediate_beliefs">Промежуточные убеждения</string>
+    <string name="section_intermediate_beliefs_hint">Правила, установки и допущения</string>
+    <string name="section_coping_strategies">Копинг стратегии</string>
+    <string name="section_coping_strategies_hint">Стратегии совладания</string>
+    <string name="section_triggers">Триггеры</string>
+    <string name="section_triggers_hint">Ситуации, активирующие убеждения</string>
+    <string name="section_automatic_thoughts">Автоматические мысли</string>
+    <string name="section_automatic_thoughts_hint">Мысли, возникающие автоматически</string>
+    <string name="section_emotions_reactions">Эмоции и реакции</string>
+    <string name="section_emotions_reactions_hint">Эмоциональные и телесные реакции</string>
+    <string name="section_behavioral_patterns">Поведенческие паттерны</string>
+    <string name="section_behavioral_patterns_hint">Типичные действия и реакции</string>
+    <string name="section_alternatives">Альтернативы и цели</string>
+    <string name="section_alternatives_hint">Рациональные мысли и план изменений</string>
+    <string name="section_strengths">Сильные стороны</string>
+    <string name="section_strengths_hint">Ваши ресурсы и опора</string>
+    <string name="section_goals">Цели терапии</string>
+    <string name="section_goals_hint">К чему вы стремитесь</string>
+
+    <!-- Conceptualization Editor -->
+    <string name="editor_title">Редактор концептуализации</string>
+    <string name="editor_save">Сохранить версию</string>
+    <string name="editor_import_smer">Импорт из СМЭР</string>
+    <string name="editor_add_item">Добавить</string>
+    <string name="editor_remove_item">Удалить</string>
+    <string name="editor_event_text">Событие</string>
+    <string name="editor_event_period">Период</string>
+    <string name="editor_belief_text">Убеждение</string>
+    <string name="editor_belief_strength">Сила: %1$d%%</string>
+    <string name="editor_rule">Правило: «Если…, то…»</string>
+    <string name="editor_assumption">Допущение</string>
+    <string name="editor_compensation">Компенсация</string>
+    <string name="editor_trigger_text">Триггер</string>
+    <string name="editor_thought_text">Мысль</string>
+    <string name="editor_distortion_type">Когнитивное искажение</string>
+    <string name="editor_distortion_none">Не выбрано</string>
+    <string name="editor_emotion_name">Эмоция</string>
+    <string name="editor_emotion_intensity">Интенсивность: %1$d%%</string>
+    <string name="editor_old_thought">Старая мысль</string>
+    <string name="editor_new_thought">Новая мысль</string>
+    <string name="editor_believability">Убедительность: %1$d%%</string>
+    <string name="editor_text_item">Текст</string>
+    <string name="editor_linked_smer">Связано с СМЭР №%1$d</string>
+
+    <!-- Version Save Dialog -->
+    <string name="version_save_title">Сохранить версию</string>
+    <string name="version_save_hint">Комментарий к версии (необязательно)</string>
+    <string name="version_save_confirm">Сохранить</string>
+    <string name="version_save_cancel">Отмена</string>
+
+    <!-- Version History -->
+    <string name="version_history_title">История версий</string>
+    <string name="version_history_empty">Нет сохранённых версий</string>
+    <string name="version_current">Текущая</string>
+    <string name="version_date_format">d MMMM yyyy, HH:mm</string>
+    <string name="version_delete_title">Удалить версию?</string>
+    <string name="version_delete_message">Версия %1$d будет удалена без возможности восстановления.</string>
+
+    <!-- SMER Import -->
+    <string name="smer_import_title">Импорт из дневника СМЭР</string>
+    <string name="smer_import_thoughts">Мысли</string>
+    <string name="smer_import_emotions">Эмоции</string>
+    <string name="smer_import_situations">Ситуации</string>
+    <string name="smer_import_frequency">Встречается %1$d раз</string>
+    <string name="smer_import_empty">Нет данных для импорта. Сначала создайте записи в дневнике СМЭР.</string>
+    <string name="smer_import_selected">Импортировать выбранное (%1$d)</string>
+
+    <!-- Cognitive Distortions -->
+    <string name="distortion_catastrophizing">Катастрофизация</string>
+    <string name="distortion_catastrophizing_desc">Преувеличение негативных последствий</string>
+    <string name="distortion_black_white">Чёрно-белое мышление</string>
+    <string name="distortion_black_white_desc">Деление всего на крайности без середины</string>
+    <string name="distortion_mind_reading">Чтение мыслей</string>
+    <string name="distortion_mind_reading_desc">Убеждённость в знании чужих мыслей</string>
+    <string name="distortion_fortune_telling">Предсказание будущего</string>
+    <string name="distortion_fortune_telling_desc">Уверенность в негативном исходе</string>
+    <string name="distortion_emotional_reasoning">Эмоциональное обоснование</string>
+    <string name="distortion_emotional_reasoning_desc">«Я чувствую — значит так и есть»</string>
+    <string name="distortion_labeling">Навешивание ярлыков</string>
+    <string name="distortion_labeling_desc">Глобальная негативная оценка себя или других</string>
+    <string name="distortion_personalization">Персонализация</string>
+    <string name="distortion_personalization_desc">Принятие ответственности за то, что не контролируете</string>
+    <string name="distortion_overgeneralization">Сверхобобщение</string>
+    <string name="distortion_overgeneralization_desc">Выводы о всём на основе одного случая</string>
+    <string name="distortion_should_statements">Долженствование</string>
+    <string name="distortion_should_statements_desc">Жёсткие правила «должен», «обязан»</string>
+    <string name="distortion_magnification">Преувеличение/преуменьшение</string>
+    <string name="distortion_magnification_desc">Раздувание негатива, обесценивание позитива</string>
+    <string name="distortion_discounting_positive">Обесценивание позитива</string>
+    <string name="distortion_discounting_positive_desc">Игнорирование положительного опыта</string>
+    <string name="distortion_selective_abstraction">Избирательное абстрагирование</string>
+    <string name="distortion_selective_abstraction_desc">Фокус на негативных деталях, игнорируя контекст</string>
+
+    <!-- Progress -->
+    <string name="progress_belief_strength">Сила убеждений</string>
+    <string name="progress_versions_count">Версий: %1$d</string>
+
+    <!-- Errors -->
+    <string name="error_save_concept">Ошибка сохранения концептуализации</string>
+    <string name="error_load_concept">Ошибка загрузки концептуализации</string>
+    <string name="error_delete_version">Ошибка удаления версии</string>
+
     <string name="coming_soon">Скоро</string>
 
     <!-- Coping Cards Screen (Stub) -->

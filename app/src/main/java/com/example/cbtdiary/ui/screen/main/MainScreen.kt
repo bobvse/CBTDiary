@@ -9,7 +9,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -32,16 +31,17 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.cbtdiary.R
 import com.example.cbtdiary.ui.screen.conceptualization.ConceptualizationScreen
 import com.example.cbtdiary.ui.screen.copingcards.CopingCardsScreen
 import com.example.cbtdiary.ui.screen.history.HistoryScreen
 import com.example.cbtdiary.ui.theme.CBTDiaryTheme
+import com.example.cbtdiary.ui.viewmodel.ConceptualizationViewModel
 
 enum class MainTab(
     @StringRes val labelRes: Int,
@@ -55,8 +55,11 @@ enum class MainTab(
 
 @Composable
 fun MainScreen(
+    conceptViewModel: ConceptualizationViewModel,
     onNavigateToNewEntry: () -> Unit,
-    onNavigateToViewEntry: (Long) -> Unit
+    onNavigateToViewEntry: (Long) -> Unit,
+    onNavigateToConceptEdit: () -> Unit,
+    onNavigateToConceptHistory: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
@@ -121,7 +124,14 @@ fun MainScreen(
                     onNavigateToNewEntry = onNavigateToNewEntry,
                     onNavigateToViewEntry = onNavigateToViewEntry
                 )
-                1 -> ConceptualizationScreen()
+                1 -> ConceptualizationScreen(
+                    viewModel = conceptViewModel,
+                    onNavigateToEdit = {
+                        conceptViewModel.startEditing()
+                        onNavigateToConceptEdit()
+                    },
+                    onNavigateToHistory = onNavigateToConceptHistory
+                )
                 2 -> CopingCardsScreen()
             }
         }
@@ -132,9 +142,29 @@ fun MainScreen(
 @Composable
 private fun MainScreenPreview() {
     CBTDiaryTheme {
-        MainScreen(
-            onNavigateToNewEntry = {},
-            onNavigateToViewEntry = {}
-        )
+        // Preview without ViewModel - just show the layout structure
+        Scaffold(
+            bottomBar = {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp
+                ) {
+                    MainTab.entries.forEachIndexed { index, tab ->
+                        val selected = index == 0
+                        NavigationBarItem(
+                            selected = selected,
+                            onClick = {},
+                            icon = {
+                                Icon(
+                                    imageVector = if (selected) tab.selectedIcon else tab.unselectedIcon,
+                                    contentDescription = stringResource(tab.labelRes)
+                                )
+                            },
+                            label = { Text(stringResource(tab.labelRes)) }
+                        )
+                    }
+                }
+            }
+        ) { _ -> }
     }
 }

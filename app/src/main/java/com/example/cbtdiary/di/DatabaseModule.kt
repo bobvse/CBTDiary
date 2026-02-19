@@ -3,6 +3,7 @@ package com.example.cbtdiary.di
 import android.content.Context
 import androidx.room.Room
 import com.example.cbtdiary.data.local.DiaryDatabase
+import com.example.cbtdiary.data.local.dao.ConceptualizationDao
 import com.example.cbtdiary.data.local.dao.DiaryEntryDao
 import dagger.Module
 import dagger.Provides
@@ -14,7 +15,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
-    
+
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): DiaryDatabase {
@@ -23,13 +24,17 @@ object DatabaseModule {
             DiaryDatabase::class.java,
             "diary_database"
         )
-            // TODO: Заменить на настоящие миграции перед релизом, иначе данные пользователя будут потеряны
             .fallbackToDestructiveMigration()
             .build()
     }
-    
+
     @Provides
     fun provideDiaryEntryDao(database: DiaryDatabase): DiaryEntryDao {
         return database.diaryEntryDao()
+    }
+
+    @Provides
+    fun provideConceptualizationDao(database: DiaryDatabase): ConceptualizationDao {
+        return database.conceptualizationDao()
     }
 }
