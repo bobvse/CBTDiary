@@ -96,7 +96,8 @@ import java.util.Locale
 fun ConceptualizationScreen(
     viewModel: ConceptualizationViewModel = hiltViewModel(),
     onNavigateToEdit: () -> Unit = {},
-    onNavigateToHistory: () -> Unit = {}
+    onNavigateToHistory: () -> Unit = {},
+    onNavigateToNew: () -> Unit = {}
 ) {
     val state by viewModel.conceptState.collectAsState()
 
@@ -111,6 +112,9 @@ fun ConceptualizationScreen(
                 },
                 actions = {
                     if (state.conceptualization != null) {
+                        IconButton(onClick = onNavigateToNew) {
+                            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.cd_create_new_concept))
+                        }
                         IconButton(onClick = onNavigateToEdit) {
                             Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.cd_edit_concept))
                         }
@@ -235,6 +239,15 @@ private fun BeckDiagramView(
     ) {
         item {
             Spacer(modifier = Modifier.height(8.dp))
+            if (conceptualization.versionNote.isNotBlank()) {
+                Text(
+                    text = conceptualization.versionNote,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -288,7 +301,7 @@ private fun buildBeckSections(c: Conceptualization): List<BeckSection> {
             titleRes = R.string.section_background,
             icon = Icons.Outlined.Timeline,
             color = Color(0xFF78909C),
-            items = c.background.map { "${it.text}${if (it.period.isNotBlank()) " (${it.period})" else ""}" }
+            items = c.background.map { it.text }
         ),
         BeckSection(
             titleRes = R.string.section_core_beliefs,

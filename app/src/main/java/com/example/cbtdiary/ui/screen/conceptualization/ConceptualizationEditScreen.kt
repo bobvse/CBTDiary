@@ -4,9 +4,13 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,12 +25,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -35,6 +41,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +49,7 @@ import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,10 +64,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cbtdiary.R
@@ -171,7 +181,9 @@ private fun EditorContent(
             EditorSection(
                 titleRes = R.string.section_background,
                 hintRes = R.string.section_background_hint,
-                color = Color(0xFF78909C)
+                color = Color(0xFF78909C),
+                itemCount = draft.background.size,
+                summaryItems = draft.background.map { it.text }
             ) {
                 BackgroundEditor(
                     items = draft.background,
@@ -185,7 +197,9 @@ private fun EditorContent(
             EditorSection(
                 titleRes = R.string.section_core_beliefs,
                 hintRes = R.string.section_core_beliefs_hint,
-                color = Color(0xFFE53935)
+                color = Color(0xFFE53935),
+                itemCount = draft.coreBeliefs.size,
+                summaryItems = draft.coreBeliefs.map { "«${it.text}» (${it.strength}%)" }
             ) {
                 CoreBeliefsEditor(
                     items = draft.coreBeliefs,
@@ -199,7 +213,9 @@ private fun EditorContent(
             EditorSection(
                 titleRes = R.string.section_intermediate_beliefs,
                 hintRes = R.string.section_intermediate_beliefs_hint,
-                color = Color(0xFFFF9800)
+                color = Color(0xFFFF9800),
+                itemCount = draft.intermediateBeliefs.size,
+                summaryItems = draft.intermediateBeliefs.map { it.rule }
             ) {
                 IntermediateBeliefEditor(
                     items = draft.intermediateBeliefs,
@@ -213,11 +229,12 @@ private fun EditorContent(
             EditorSection(
                 titleRes = R.string.section_coping_strategies,
                 hintRes = R.string.section_coping_strategies_hint,
-                color = Color(0xFFFFC107)
+                color = Color(0xFFFFC107),
+                itemCount = draft.copingStrategies.size,
+                summaryItems = draft.copingStrategies
             ) {
-                StringListEditor(
+                CopingStrategiesEditor(
                     items = draft.copingStrategies,
-                    labelRes = R.string.editor_text_item,
                     onUpdate = onUpdateCopingStrategies
                 )
             }
@@ -228,7 +245,9 @@ private fun EditorContent(
             EditorSection(
                 titleRes = R.string.section_triggers,
                 hintRes = R.string.section_triggers_hint,
-                color = Color(0xFF1E88E5)
+                color = Color(0xFF1E88E5),
+                itemCount = draft.triggers.size,
+                summaryItems = draft.triggers.map { it.text }
             ) {
                 TriggersEditor(
                     items = draft.triggers,
@@ -242,7 +261,9 @@ private fun EditorContent(
             EditorSection(
                 titleRes = R.string.section_automatic_thoughts,
                 hintRes = R.string.section_automatic_thoughts_hint,
-                color = Color(0xFF7B1FA2)
+                color = Color(0xFF7B1FA2),
+                itemCount = draft.automaticThoughts.size,
+                summaryItems = draft.automaticThoughts.map { it.text }
             ) {
                 AutomaticThoughtsEditor(
                     items = draft.automaticThoughts,
@@ -256,7 +277,9 @@ private fun EditorContent(
             EditorSection(
                 titleRes = R.string.section_emotions_reactions,
                 hintRes = R.string.section_emotions_reactions_hint,
-                color = Color(0xFFE91E63)
+                color = Color(0xFFE91E63),
+                itemCount = draft.emotions.size,
+                summaryItems = draft.emotions.map { "${it.name} (${it.intensity}%)" }
             ) {
                 EmotionsEditor(
                     items = draft.emotions,
@@ -270,7 +293,9 @@ private fun EditorContent(
             EditorSection(
                 titleRes = R.string.section_behavioral_patterns,
                 hintRes = R.string.section_behavioral_patterns_hint,
-                color = Color(0xFF8D6E63)
+                color = Color(0xFF8D6E63),
+                itemCount = draft.behavioralPatterns.size,
+                summaryItems = draft.behavioralPatterns
             ) {
                 StringListEditor(
                     items = draft.behavioralPatterns,
@@ -285,7 +310,9 @@ private fun EditorContent(
             EditorSection(
                 titleRes = R.string.section_alternatives,
                 hintRes = R.string.section_alternatives_hint,
-                color = Color(0xFF43A047)
+                color = Color(0xFF43A047),
+                itemCount = draft.alternatives.size,
+                summaryItems = draft.alternatives.map { "«${it.newThought}»" }
             ) {
                 AlternativesEditor(
                     items = draft.alternatives,
@@ -299,7 +326,9 @@ private fun EditorContent(
             EditorSection(
                 titleRes = R.string.section_strengths,
                 hintRes = R.string.section_strengths_hint,
-                color = Color(0xFF26A69A)
+                color = Color(0xFF26A69A),
+                itemCount = draft.strengths.size,
+                summaryItems = draft.strengths
             ) {
                 StringListEditor(
                     items = draft.strengths,
@@ -314,7 +343,9 @@ private fun EditorContent(
             EditorSection(
                 titleRes = R.string.section_goals,
                 hintRes = R.string.section_goals_hint,
-                color = Color(0xFF2196F3)
+                color = Color(0xFF2196F3),
+                itemCount = draft.goals.size,
+                summaryItems = draft.goals
             ) {
                 StringListEditor(
                     items = draft.goals,
@@ -333,48 +364,128 @@ private fun EditorSection(
     titleRes: Int,
     hintRes: Int,
     color: Color,
+    itemCount: Int = 0,
+    summaryItems: List<String> = emptyList(),
     content: @Composable () -> Unit
 ) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
+    var isEditing by rememberSaveable { mutableStateOf(false) }
+    val hasSavedData = itemCount > 0 && !isEditing
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow)),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.04f)),
+        colors = CardDefaults.cardColors(
+            containerColor = if (hasSavedData) color.copy(alpha = 0.06f)
+            else color.copy(alpha = 0.04f)
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { expanded = !expanded },
+                    .clickable { isEditing = !isEditing },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(titleRes),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = color
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(titleRes),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = color
+                        )
+                        if (hasSavedData) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = color.copy(alpha = 0.12f)
+                            ) {
+                                Text(
+                                    text = "$itemCount",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = color,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
                     Text(
                         text = stringResource(hintRes),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                if (hasSavedData) {
+                    Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = null,
+                        tint = color,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
                 Icon(
-                    imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    imageVector = if (isEditing) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
                     contentDescription = null,
                     tint = color.copy(alpha = 0.6f)
                 )
             }
 
-            AnimatedVisibility(visible = expanded) {
+            if (hasSavedData && summaryItems.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                summaryItems.take(3).forEach { item ->
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 7.dp)
+                                .size(5.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(color.copy(alpha = 0.4f))
+                        )
+                        Text(
+                            text = item,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                if (summaryItems.size > 3) {
+                    Text(
+                        text = "и ещё ${summaryItems.size - 3}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = color.copy(alpha = 0.6f),
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+            }
+
+            AnimatedVisibility(visible = isEditing) {
                 Column(modifier = Modifier.padding(top = 12.dp)) {
                     content()
+                    Spacer(modifier = Modifier.height(12.dp))
+                    FilledTonalButton(
+                        onClick = { isEditing = false },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = color.copy(alpha = 0.12f),
+                            contentColor = color
+                        )
+                    ) {
+                        Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.section_save_button))
+                    }
                 }
             }
         }
@@ -393,7 +504,7 @@ private fun BackgroundEditor(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
                     value = event.text,
@@ -401,16 +512,6 @@ private fun BackgroundEditor(
                         onUpdate(items.toMutableList().also { it[index] = event.copy(text = text) })
                     },
                     label = { Text(stringResource(R.string.editor_event_text)) },
-                    modifier = Modifier.weight(2f),
-                    shape = RoundedCornerShape(12.dp),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
-                )
-                OutlinedTextField(
-                    value = event.period,
-                    onValueChange = { period ->
-                        onUpdate(items.toMutableList().also { it[index] = event.copy(period = period) })
-                    },
-                    label = { Text(stringResource(R.string.editor_event_period)) },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
@@ -796,8 +897,65 @@ private fun AlternativesEditor(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun StringListEditor(
+private fun CopingStrategiesEditor(
+    items: List<String>,
+    onUpdate: (List<String>) -> Unit
+) {
+    val predefined = listOf(
+        "Дыхание 4–7–8" to "💨",
+        "Прогрессивная мышечная релаксация" to "💪",
+        "Заземление (5-4-3-2-1)" to "🌍",
+        "Факт vs страх" to "🧠",
+        "Позитивный самодиалог" to "💬",
+        "Физическая активность" to "🏃",
+        "Отвлечение" to "🎨",
+        "Социальная поддержка" to "🤝"
+    )
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = stringResource(R.string.editor_predefined_strategies),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            predefined.forEach { (label, emoji) ->
+                val isSelected = items.contains(label)
+                FilterChip(
+                    selected = isSelected,
+                    onClick = {
+                        val newItems = if (isSelected) items - label else items + label
+                        onUpdate(newItems)
+                    },
+                    label = { Text("$emoji $label") }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        val customItems = items.filter { item -> predefined.none { it.first == item } }
+
+        StringListEditor(
+            items = customItems,
+            labelRes = R.string.editor_text_item,
+            onUpdate = { newCustom ->
+                val predefinedSelected = items.filter { item -> predefined.any { it.first == item } }
+                onUpdate(predefinedSelected + newCustom)
+            }
+        )
+    }
+}
+
+@Composable
+internal fun StringListEditor(
     items: List<String>,
     labelRes: Int,
     onUpdate: (List<String>) -> Unit

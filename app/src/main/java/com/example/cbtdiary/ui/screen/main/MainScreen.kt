@@ -63,6 +63,7 @@ fun MainScreen(
     onNavigateToConceptEdit: () -> Unit,
     onNavigateToConceptHistory: () -> Unit,
     onNavigateToCopingDetail: (Long) -> Unit,
+    onNavigateToEdit: (Long) -> Unit,
     onNavigateToCopingEditor: () -> Unit,
     onNavigateToCopingQuiz: () -> Unit
 ) {
@@ -127,7 +128,8 @@ fun MainScreen(
             when (tab) {
                 0 -> HistoryScreen(
                     onNavigateToNewEntry = onNavigateToNewEntry,
-                    onNavigateToViewEntry = onNavigateToViewEntry
+                    onNavigateToViewEntry = onNavigateToViewEntry,
+                    onNavigateToEdit = onNavigateToEdit
                 )
                 1 -> ConceptualizationScreen(
                     viewModel = conceptViewModel,
@@ -135,7 +137,11 @@ fun MainScreen(
                         conceptViewModel.startEditing()
                         onNavigateToConceptEdit()
                     },
-                    onNavigateToHistory = onNavigateToConceptHistory
+                    onNavigateToHistory = onNavigateToConceptHistory,
+                    onNavigateToNew = {
+                        conceptViewModel.startNew()
+                        onNavigateToConceptEdit()
+                    }
                 )
                 2 -> CopingCardsScreen(
                     viewModel = copingViewModel,

@@ -1,13 +1,8 @@
 package com.example.cbtdiary.ui.screen.history
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,20 +20,26 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -46,11 +47,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -81,6 +85,7 @@ import java.util.Locale
 fun HistoryScreen(
     onNavigateToNewEntry: () -> Unit,
     onNavigateToViewEntry: (Long) -> Unit,
+    onNavigateToEdit: (Long) -> Unit = {},
     viewModel: HistoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -89,6 +94,7 @@ fun HistoryScreen(
         uiState = uiState,
         onNavigateToNewEntry = onNavigateToNewEntry,
         onNavigateToViewEntry = onNavigateToViewEntry,
+        onNavigateToEdit = onNavigateToEdit,
         onSelectDate = viewModel::selectDate,
         onPreviousMonth = viewModel::goToPreviousMonth,
         onNextMonth = viewModel::goToNextMonth,
@@ -102,18 +108,29 @@ fun HistoryScreenContent(
     uiState: HistoryUiState,
     onNavigateToNewEntry: () -> Unit,
     onNavigateToViewEntry: (Long) -> Unit,
+    onNavigateToEdit: (Long) -> Unit = {},
     onSelectDate: (LocalDate) -> Unit,
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit,
     onErrorDismissed: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    var selectedEntry by remember { mutableStateOf<DiaryEntry?>(null) }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
             snackbarHostState.showSnackbar(it)
             onErrorDismissed()
         }
+    }
+
+    selectedEntry?.let { entry ->
+        EntryDetailBottomSheet(
+            entry = entry,
+            onDismiss = { selectedEntry = null },
+            onNavigateToView = { onNavigateToViewEntry(entry.id) },
+            onNavigateToEdit = { onNavigateToEdit(entry.id) }
+        )
     }
 
     Scaffold(
@@ -241,7 +258,7 @@ fun HistoryScreenContent(
                     ) { entry ->
                         EntryCard(
                             entry = entry,
-                            onClick = { onNavigateToViewEntry(entry.id) },
+                            onClick = { selectedEntry = entry },
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                         )
                     }
@@ -463,10 +480,10 @@ fun EntryCard(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -474,32 +491,44 @@ fun EntryCard(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                if (entry.emotions.isNotEmpty()) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Text(
+                            text = "${entry.emotions.size}",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                        )
+                    }
+                }
             }
 
             if (entry.situation.isNotBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = entry.situation,
                     style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 2,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
             if (entry.emotions.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     entry.emotions.take(3).forEach { emotionName ->
                         val emotion = Emotions.allEmotions.find { it.name == emotionName }
-                        val chipColor = if (emotion != null) {
-                            Color(emotion.category.color)
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        }
+                        val chipColor = if (emotion != null) Color(emotion.category.color)
+                        else MaterialTheme.colorScheme.primary
                         Surface(
                             color = chipColor.copy(alpha = 0.12f),
                             shape = RoundedCornerShape(12.dp)
@@ -525,19 +554,165 @@ fun EntryCard(
                     }
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EntryDetailBottomSheet(
+    entry: DiaryEntry,
+    onDismiss: () -> Unit,
+    onNavigateToView: () -> Unit,
+    onNavigateToEdit: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val formatter = remember {
+        DateTimeFormatter.ofPattern("d MMMM yyyy, HH:mm", Locale.forLanguageTag("ru-RU"))
+    }
+    val formattedDate = remember(entry.createdAt) {
+        Instant.ofEpochMilli(entry.createdAt)
+            .atZone(ZoneId.systemDefault())
+            .format(formatter)
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                text = formattedDate,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            if (entry.situation.isNotBlank()) {
+                DetailSection(
+                    title = stringResource(R.string.section_situation),
+                    content = entry.situation,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
 
             if (entry.thoughts.isNotBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = entry.thoughts,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                DetailSection(
+                    title = stringResource(R.string.section_thoughts),
+                    content = entry.thoughts,
+                    color = Color(0xFF9C27B0)
                 )
+            }
+
+            if (entry.emotions.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.section_emotions),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFFE91E63),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                ) {
+                    entry.emotions.forEach { emotionName ->
+                        val emotion = Emotions.allEmotions.find { it.name == emotionName }
+                        val chipColor = if (emotion != null) Color(emotion.category.color)
+                        else MaterialTheme.colorScheme.primary
+                        Surface(
+                            color = chipColor.copy(alpha = 0.12f),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                text = emotionName,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = chipColor,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (entry.bodyReaction.isNotBlank()) {
+                DetailSection(
+                    title = stringResource(R.string.section_body_reaction),
+                    content = entry.bodyReaction,
+                    color = Color(0xFFFF9800)
+                )
+            }
+
+            if (entry.actionReaction.isNotBlank()) {
+                DetailSection(
+                    title = stringResource(R.string.section_action_reaction),
+                    content = entry.actionReaction,
+                    color = Color(0xFF4CAF50)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        onDismiss()
+                        onNavigateToEdit()
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Outlined.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.history_detail_edit))
+                }
+                FilledTonalButton(
+                    onClick = {
+                        onDismiss()
+                        onNavigateToView()
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(stringResource(R.string.history_detail_more))
+                }
             }
         }
     }
+}
+
+@Composable
+private fun DetailSection(
+    title: String,
+    content: String,
+    color: Color
+) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.SemiBold,
+        color = color,
+        modifier = Modifier.padding(bottom = 4.dp)
+    )
+    Text(
+        text = content,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.padding(bottom = 12.dp)
+    )
 }
 
 @Preview(showBackground = true, name = "History Screen - With Entries")
@@ -561,6 +736,7 @@ private fun HistoryScreenPreview() {
             ),
             onNavigateToNewEntry = {},
             onNavigateToViewEntry = {},
+            onNavigateToEdit = {},
             onSelectDate = {},
             onPreviousMonth = {},
             onNextMonth = {},
@@ -577,6 +753,7 @@ private fun HistoryScreenEmptyPreview() {
             uiState = HistoryUiState(),
             onNavigateToNewEntry = {},
             onNavigateToViewEntry = {},
+            onNavigateToEdit = {},
             onSelectDate = {},
             onPreviousMonth = {},
             onNextMonth = {},

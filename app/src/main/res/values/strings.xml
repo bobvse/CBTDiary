@@ -17,6 +17,8 @@
     <string name="date_format_day_month">d MMMM</string>
     <string name="date_format_time">HH:mm</string>
     <string name="date_format_full">d MMMM yyyy, HH:mm</string>
+    <string name="history_detail_more">Подробнее</string>
+    <string name="history_detail_edit">Редактировать</string>
 
     <!-- Entry Screen -->
     <string name="step_counter">%1$d / %2$d</string>
@@ -76,6 +78,7 @@
     <string name="conceptualization_and_more">и ещё %1$d</string>
     <string name="cd_edit_concept">Редактировать концептуализацию</string>
     <string name="cd_version_history">История версий</string>
+    <string name="cd_create_new_concept">Создать новую</string>
 
     <!-- Beck Diagram Sections -->
     <string name="section_background">Предыстория</string>
@@ -124,11 +127,13 @@
     <string name="editor_new_thought">Новая мысль</string>
     <string name="editor_believability">Убедительность: %1$d%%</string>
     <string name="editor_text_item">Текст</string>
+    <string name="section_save_button">Готово</string>
+    <string name="editor_predefined_strategies">Популярные стратегии</string>
     <string name="editor_linked_smer">Связано с СМЭР №%1$d</string>
 
     <!-- Version Save Dialog -->
     <string name="version_save_title">Сохранить версию</string>
-    <string name="version_save_hint">Комментарий к версии (необязательно)</string>
+    <string name="version_save_hint">Название концептуализации (необязательно)</string>
     <string name="version_save_confirm">Сохранить</string>
     <string name="version_save_cancel">Отмена</string>
 
@@ -184,6 +189,8 @@
     <string name="error_load_concept">Ошибка загрузки концептуализации</string>
     <string name="error_delete_version">Ошибка удаления версии</string>
 
+    <string name="cd_select_date">Выбрать дату</string>
+    <string name="cd_edit_entry">Редактировать запись</string>
     <string name="coming_soon">Скоро</string>
 
     <!-- Coping Cards Screen (Stub) -->

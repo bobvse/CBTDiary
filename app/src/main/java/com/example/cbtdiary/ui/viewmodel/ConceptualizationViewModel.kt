@@ -105,6 +105,17 @@ class ConceptualizationViewModel @Inject constructor(
         _editorState.update { it.copy(draft = current, errorRes = null) }
     }
 
+    fun startNew() {
+        _editorState.update { it.copy(draft = Conceptualization(), errorRes = null) }
+    }
+
+    fun selectVersion(id: Long) {
+        val version = _versionsState.value.versions.find { it.id == id }
+        if (version != null) {
+            _conceptState.update { it.copy(conceptualization = version) }
+        }
+    }
+
     fun requestSave() {
         _editorState.update { it.copy(showVersionNoteDialog = true) }
     }

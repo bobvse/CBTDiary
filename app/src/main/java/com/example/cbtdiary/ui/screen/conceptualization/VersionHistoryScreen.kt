@@ -1,6 +1,7 @@
 package com.example.cbtdiary.ui.screen.conceptualization
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,7 +64,8 @@ import java.util.Locale
 @Composable
 fun VersionHistoryScreen(
     viewModel: ConceptualizationViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onSelectVersion: (Long) -> Unit = {}
 ) {
     val state by viewModel.versionsState.collectAsState()
     val currentConceptState by viewModel.conceptState.collectAsState()
@@ -91,6 +93,7 @@ fun VersionHistoryScreen(
             state = state,
             currentVersion = currentVersion,
             onDelete = viewModel::deleteVersion,
+            onSelect = onSelectVersion,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -103,6 +106,7 @@ private fun VersionHistoryContent(
     state: VersionsState,
     currentVersion: Int?,
     onDelete: (Long) -> Unit,
+    onSelect: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     when {
@@ -145,7 +149,8 @@ private fun VersionHistoryContent(
                         isCurrent = version.version == currentVersion,
                         isFirst = index == 0,
                         isLast = index == state.versions.lastIndex,
-                        onDelete = { onDelete(version.id) }
+                        onDelete = { onDelete(version.id) },
+                        onSelect = { onSelect(version.id) }
                     )
                 }
                 item { Spacer(modifier = Modifier.height(24.dp)) }
@@ -160,7 +165,8 @@ private fun VersionTimelineItem(
     isCurrent: Boolean,
     isFirst: Boolean,
     isLast: Boolean,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onSelect: () -> Unit
 ) {
     val dateFormat = remember {
         SimpleDateFormat("d MMMM yyyy, HH:mm", Locale.forLanguageTag("ru-RU"))
@@ -235,7 +241,8 @@ private fun VersionTimelineItem(
             modifier = Modifier
                 .weight(1f)
                 .padding(bottom = 4.dp)
-                .offset(y = 4.dp),
+                .offset(y = 4.dp)
+                .clickable { onSelect() },
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
                 containerColor = if (isCurrent)
@@ -366,6 +373,7 @@ private fun VersionHistoryPreview() {
             ),
             currentVersion = 3,
             onDelete = {},
+            onSelect = {},
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -379,6 +387,7 @@ private fun VersionHistoryEmptyPreview() {
             state = VersionsState(versions = emptyList(), isLoading = false),
             currentVersion = null,
             onDelete = {},
+            onSelect = {},
             modifier = Modifier.fillMaxSize()
         )
     }

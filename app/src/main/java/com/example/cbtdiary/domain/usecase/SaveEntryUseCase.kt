@@ -12,7 +12,7 @@ class SaveEntryUseCase @Inject constructor(
         val currentTime = System.currentTimeMillis()
         val entryToSave = if (entry.id == DiaryEntry.NEW_ENTRY_ID) {
             entry.copy(
-                createdAt = currentTime,
+                createdAt = if (entry.createdAt > 0) entry.createdAt else currentTime,
                 updatedAt = currentTime
             )
         } else {

@@ -42,6 +42,9 @@ sealed class Screen(val route: String) {
     data object CopingCardDetail : Screen("coping_detail/{cardId}") {
         fun createRoute(cardId: Long) = "coping_detail/$cardId"
     }
+    data object EditEntry : Screen("edit_entry/{entryId}") {
+        fun createRoute(entryId: Long) = "edit_entry/$entryId"
+    }
     data object CopingCardEditor : Screen("coping_editor")
     data object CopingCardQuiz : Screen("coping_quiz")
 }
@@ -88,6 +91,7 @@ fun NavGraph(navController: NavHostController) {
                 copingViewModel = copingViewModel,
                 onNavigateToNewEntry = { navController.navigate(Screen.NewEntry.route) },
                 onNavigateToViewEntry = { entryId -> navController.navigate(Screen.ViewEntry.createRoute(entryId)) },
+                onNavigateToEdit = { entryId -> navController.navigate(Screen.EditEntry.createRoute(entryId)) },
                 onNavigateToConceptEdit = { navController.navigate(Screen.ConceptEdit.route) },
                 onNavigateToConceptHistory = { navController.navigate(Screen.ConceptHistory.route) },
                 onNavigateToCopingDetail = { cardId -> navController.navigate(Screen.CopingCardDetail.createRoute(cardId)) },
@@ -109,6 +113,23 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable(
+            route = Screen.EditEntry.route,
+            arguments = listOf(navArgument("entryId") { type = NavType.LongType }),
+            enterTransition = {
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, slideInFromEnd) + fadeIn()
+            },
+            exitTransition = {
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, slideOutToEnd) + fadeOut()
+            }
+        ) { backStackEntry ->
+            val entryId = backStackEntry.arguments?.getLong("entryId") ?: 0L
+            EntryScreen(
+                onNavigateBack = { navController.popBackStack() },
+                entryId = entryId
+            )
+        }
+
+        composable(
             route = Screen.ViewEntry.route,
             arguments = listOf(navArgument("entryId") { type = NavType.LongType }),
             enterTransition = {
@@ -119,7 +140,13 @@ fun NavGraph(navController: NavHostController) {
             }
         ) { backStackEntry ->
             val entryId = backStackEntry.arguments?.getLong("entryId") ?: 0L
-            ViewEntryScreen(entryId = entryId, onNavigateBack = { navController.popBackStack() })
+            ViewEntryScreen(
+                entryId = entryId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEdit = {
+                    navController.navigate(Screen.EditEntry.createRoute(entryId))
+                }
+            )
         }
 
         composable(
@@ -156,7 +183,14 @@ fun NavGraph(navController: NavHostController) {
         ) {
             val mainEntry = navController.getBackStackEntry(Screen.Main.route)
             val conceptViewModel: ConceptualizationViewModel = hiltViewModel(mainEntry)
-            VersionHistoryScreen(viewModel = conceptViewModel, onNavigateBack = { navController.popBackStack() })
+            VersionHistoryScreen(
+                viewModel = conceptViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onSelectVersion = { id ->
+                    conceptViewModel.selectVersion(id)
+                    navController.popBackStack()
+                }
+            )
         }
 
         // Coping Card routes

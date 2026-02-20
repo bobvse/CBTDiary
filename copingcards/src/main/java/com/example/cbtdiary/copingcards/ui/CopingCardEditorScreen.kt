@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,9 +32,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Psychology
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -48,14 +53,18 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -80,6 +89,14 @@ fun CopingCardEditorScreen(
 ) {
     val state by viewModel.editorState.collectAsState()
     val totalSteps = 4
+    var wasSaving by remember { mutableStateOf(false) }
+
+    LaunchedEffect(state.isSaving) {
+        if (wasSaving && !state.isSaving && state.errorRes == null && state.currentStep == totalSteps - 1) {
+            onNavigateBack()
+        }
+        wasSaving = state.isSaving
+    }
 
     if (state.showImportSheet) {
         ImportBottomSheet(
@@ -101,9 +118,23 @@ fun CopingCardEditorScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
+                    IconButton(onClick = {
+                        if (state.currentStep == 0) onNavigateBack()
+                        else viewModel.prevEditorStep()
+                    }) {
+                        Icon(
+                            imageVector = if (state.currentStep == 0) Icons.Default.Close else Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.cd_back)
+                        )
                     }
+                },
+                actions = {
+                    Text(
+                        text = stringResource(R.string.step_counter, state.currentStep + 1, totalSteps),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(end = 16.dp)
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
@@ -113,6 +144,7 @@ fun CopingCardEditorScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
         ) {
             LinearProgressIndicator(
                 progress = { (state.currentStep + 1).toFloat() / totalSteps },
@@ -165,35 +197,66 @@ fun CopingCardEditorScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(
-                    onClick = {
-                        if (state.currentStep > 0) viewModel.prevEditorStep()
-                        else onNavigateBack()
+                if (state.currentStep != 0) {
+                    FilledTonalButton(
+                        onClick = viewModel::prevEditorStep,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.cd_back))
                     }
-                ) {
-                    Text(stringResource(R.string.cd_back))
                 }
-
-                if (state.currentStep < totalSteps - 1) {
-                    TextButton(onClick = viewModel::nextEditorStep) {
-                        Text(stringResource(com.example.cbtdiary.copingcards.R.string.editor_save).let {
-                            "Далее"
-                        })
-                    }
-                } else {
-                    TextButton(
-                        onClick = {
-                            viewModel.saveCard()
-                            if (state.errorRes == null && !state.isSaving) {
-                                onNavigateBack()
-                            }
-                        },
+                if (state.currentStep == totalSteps - 1) {
+                    Button(
+                        onClick = { if (!state.isSaving) viewModel.saveCard() },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ),
                         enabled = !state.isSaving
                     ) {
-                        Text(stringResource(R.string.editor_save))
+                        if (state.isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.action_saving))
+                        } else {
+                            Icon(
+                                Icons.Filled.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.editor_save))
+                        }
+                    }
+                } else {
+                    Button(
+                        onClick = viewModel::nextEditorStep,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(stringResource(R.string.action_next))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                 }
             }
@@ -368,7 +431,6 @@ private fun StrategiesStep(
         PredefinedStrategy.entries.forEach { strategy ->
             val label = stringResource(strategy.labelRes)
             val desc = stringResource(strategy.descRes)
-            val fullLabel = "$label: $desc"
             val isSelected = card.strategies.contains(label)
 
             Card(

@@ -13,6 +13,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -46,6 +48,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -91,9 +94,14 @@ private fun capitalizeFirstChar(text: String): String {
 @Composable
 fun EntryScreen(
     onNavigateBack: () -> Unit,
+    entryId: Long? = null,
     viewModel: EntryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(entryId) {
+        entryId?.let { viewModel.loadEntry(it) }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -122,7 +130,8 @@ fun EntryScreen(
         onBodyReactionChange = viewModel::updateBodyReaction,
         onActionReactionChange = viewModel::updateActionReaction,
         onSave = viewModel::saveEntry,
-        onErrorDismissed = viewModel::clearError
+        onErrorDismissed = viewModel::clearError,
+        onDateChange = viewModel::updateSelectedDate
     )
 }
 
@@ -139,7 +148,8 @@ fun EntryScreenContent(
     onBodyReactionChange: (String) -> Unit,
     onActionReactionChange: (String) -> Unit,
     onSave: () -> Unit,
-    onErrorDismissed: () -> Unit
+    onErrorDismissed: () -> Unit,
+    onDateChange: (Long) -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -228,6 +238,14 @@ fun EntryScreenContent(
                 currentStep = uiState.currentStep,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
             )
+
+            if (uiState.currentStep == EntryStep.SITUATION) {
+                DatePickerChip(
+                    selectedDate = uiState.selectedDate,
+                    onDateSelected = onDateChange,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+                )
+            }
 
             AnimatedContent(
                 targetState = uiState.currentStep,
@@ -453,6 +471,61 @@ private fun EmotionStepContent(
 }
 
 @Composable
+private fun DatePickerChip(
+    selectedDate: Long,
+    onDateSelected: (Long) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val dateText = remember(selectedDate) {
+        val sdf = java.text.SimpleDateFormat("d MMMM yyyy", java.util.Locale.forLanguageTag("ru-RU"))
+        sdf.format(java.util.Date(selectedDate))
+    }
+
+    Surface(
+        modifier = modifier.clickable {
+            val calendar = java.util.Calendar.getInstance()
+            calendar.timeInMillis = selectedDate
+            android.app.DatePickerDialog(
+                context,
+                { _, year, month, dayOfMonth ->
+                    val cal = java.util.Calendar.getInstance()
+                    cal.set(year, month, dayOfMonth)
+                    val origCal = java.util.Calendar.getInstance()
+                    origCal.timeInMillis = selectedDate
+                    cal.set(java.util.Calendar.HOUR_OF_DAY, origCal.get(java.util.Calendar.HOUR_OF_DAY))
+                    cal.set(java.util.Calendar.MINUTE, origCal.get(java.util.Calendar.MINUTE))
+                    onDateSelected(cal.timeInMillis)
+                },
+                calendar.get(java.util.Calendar.YEAR),
+                calendar.get(java.util.Calendar.MONTH),
+                calendar.get(java.util.Calendar.DAY_OF_MONTH)
+            ).show()
+        },
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                Icons.Outlined.CalendarToday,
+                contentDescription = stringResource(R.string.cd_select_date),
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = dateText,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@Composable
 private fun BottomNavigation(
     currentStep: EntryStep,
     isSaving: Boolean,
@@ -545,7 +618,8 @@ private fun EntryScreenPreview() {
             onBodyReactionChange = {},
             onActionReactionChange = {},
             onSave = {},
-            onErrorDismissed = {}
+            onErrorDismissed = {},
+            onDateChange = {}
         )
     }
 }
@@ -568,7 +642,8 @@ private fun EntryScreenEmotionPreview() {
             onBodyReactionChange = {},
             onActionReactionChange = {},
             onSave = {},
-            onErrorDismissed = {}
+            onErrorDismissed = {},
+            onDateChange = {}
         )
     }
 }

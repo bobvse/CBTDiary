@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.DirectionsRun
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Favorite
@@ -74,6 +75,7 @@ import java.util.Locale
 fun ViewEntryScreen(
     entryId: Long,
     onNavigateBack: () -> Unit,
+    onNavigateToEdit: () -> Unit = {},
     viewModel: ViewEntryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -94,7 +96,8 @@ fun ViewEntryScreen(
         entry = uiState.entry,
         isLoading = uiState.isLoading,
         onNavigateBack = onNavigateBack,
-        onDelete = viewModel::deleteEntry
+        onDelete = viewModel::deleteEntry,
+        onEdit = onNavigateToEdit
     )
 }
 
@@ -104,7 +107,8 @@ fun ViewEntryScreenContent(
     entry: DiaryEntry?,
     isLoading: Boolean,
     onNavigateBack: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onEdit: () -> Unit = {}
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -147,6 +151,12 @@ fun ViewEntryScreenContent(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onEdit) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = stringResource(R.string.cd_edit_entry)
+                        )
+                    }
                     IconButton(onClick = { showDeleteDialog = true }) {
                         Icon(
                             imageVector = Icons.Default.Delete,
@@ -436,7 +446,8 @@ private fun ViewEntryScreenPreview() {
             ),
             isLoading = false,
             onNavigateBack = {},
-            onDelete = {}
+            onDelete = {},
+            onEdit = {}
         )
     }
 }
@@ -449,7 +460,8 @@ private fun ViewEntryScreenNotFoundPreview() {
             entry = null,
             isLoading = false,
             onNavigateBack = {},
-            onDelete = {}
+            onDelete = {},
+            onEdit = {}
         )
     }
 }

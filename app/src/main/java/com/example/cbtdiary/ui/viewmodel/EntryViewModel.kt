@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cbtdiary.R
 import com.example.cbtdiary.domain.model.DiaryEntry
+import com.example.cbtdiary.domain.repository.DiaryRepository
 import com.example.cbtdiary.domain.usecase.SaveEntryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -43,7 +44,9 @@ data class EntryUiState(
     val currentStep: EntryStep = EntryStep.SITUATION,
     val direction: Int = 1,
     val isSaving: Boolean = false,
-    @StringRes val errorRes: Int? = null
+    @StringRes val errorRes: Int? = null,
+    val selectedDate: Long = System.currentTimeMillis(),
+    val entryId: Long = 0L
 )
 
 sealed class EntryEvent {
@@ -52,7 +55,8 @@ sealed class EntryEvent {
 
 @HiltViewModel
 class EntryViewModel @Inject constructor(
-    private val saveEntryUseCase: SaveEntryUseCase
+    private val saveEntryUseCase: SaveEntryUseCase,
+    private val repository: DiaryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EntryUiState())
@@ -75,6 +79,31 @@ class EntryViewModel @Inject constructor(
 
     fun updateActionReaction(text: String) {
         _uiState.update { it.copy(actionReaction = text) }
+    }
+
+    fun updateSelectedDate(timestamp: Long) {
+        _uiState.update { it.copy(selectedDate = timestamp) }
+    }
+
+    fun loadEntry(entryId: Long) {
+        viewModelScope.launch {
+            try {
+                val entry = repository.getEntryById(entryId)
+                if (entry != null) {
+                    _uiState.update {
+                        it.copy(
+                            entryId = entry.id,
+                            situation = entry.situation,
+                            thoughts = entry.thoughts,
+                            emotions = entry.emotions,
+                            bodyReaction = entry.bodyReaction,
+                            actionReaction = entry.actionReaction,
+                            selectedDate = entry.createdAt
+                        )
+                    }
+                }
+            } catch (_: Exception) {}
+        }
     }
 
     fun toggleEmotion(emotion: String) {
@@ -135,11 +164,14 @@ class EntryViewModel @Inject constructor(
             _uiState.update { it.copy(isSaving = true, errorRes = null) }
             try {
                 val entry = DiaryEntry(
+                    id = state.entryId,
                     situation = state.situation,
                     thoughts = state.thoughts,
                     emotions = state.emotions,
                     bodyReaction = state.bodyReaction,
-                    actionReaction = state.actionReaction
+                    actionReaction = state.actionReaction,
+                    createdAt = state.selectedDate,
+                    updatedAt = System.currentTimeMillis()
                 )
                 saveEntryUseCase(entry)
                 _uiState.update { it.copy(isSaving = false) }
