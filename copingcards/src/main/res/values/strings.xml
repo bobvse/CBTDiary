@@ -1,0 +1,90 @@
+<resources>
+    <!-- Coping Cards Main -->
+    <string name="coping_title">Копинг карточки</string>
+    <string name="coping_empty_title">Создайте первую копинг карточку</string>
+    <string name="coping_empty_desc">Копинг карточки — мгновенная помощь в стрессе. На одной стороне — триггер или негативная мысль, на другой — рациональный ответ и стратегия совладания.</string>
+    <string name="coping_create_first">Создать карточку</string>
+    <string name="coping_search_hint">Поиск по карточкам…</string>
+    <string name="coping_filter_all">Все</string>
+    <string name="coping_filter_favorites">Избранные</string>
+    <string name="coping_card_count">%1$d / 50</string>
+    <string name="coping_tap_to_flip">Нажмите чтобы перевернуть</string>
+    <string name="coping_used_times">Использовано: %1$d раз</string>
+    <string name="coping_used_now">Использовать</string>
+    <string name="cd_add_card">Добавить карточку</string>
+    <string name="cd_quiz_mode">Режим тренировки</string>
+    <string name="cd_favorite">В избранное</string>
+    <string name="cd_unfavorite">Из избранного</string>
+
+    <!-- Card Editor -->
+    <string name="editor_card_title">Новая карточка</string>
+    <string name="editor_card_edit_title">Редактирование</string>
+    <string name="editor_step_front">Лицевая сторона</string>
+    <string name="editor_step_front_hint">Триггерная ситуация или негативная мысль</string>
+    <string name="editor_step_back">Обратная сторона</string>
+    <string name="editor_step_back_hint">Рациональный ответ, альтернативная мысль</string>
+    <string name="editor_step_strategies">Стратегии</string>
+    <string name="editor_step_strategies_hint">Выберите копинг стратегии</string>
+    <string name="editor_step_tags">Теги и цвет</string>
+    <string name="editor_step_tags_hint">Категоризируйте карточку</string>
+    <string name="editor_front_label">Негативная мысль / триггер</string>
+    <string name="editor_back_label">Рациональный ответ</string>
+    <string name="editor_custom_strategy">Своя стратегия…</string>
+    <string name="editor_card_color">Цвет карточки</string>
+    <string name="editor_import_smer">Импорт из СМЭР</string>
+    <string name="editor_import_concept">Импорт из концептуализации</string>
+    <string name="editor_import_title">Импорт</string>
+    <string name="editor_import_empty">Нет данных для импорта</string>
+    <string name="editor_save">Сохранить</string>
+    <string name="editor_error_front">Заполните лицевую сторону</string>
+    <string name="editor_error_back">Заполните обратную сторону</string>
+    <string name="editor_error_limit">Достигнут лимит в 50 карточек</string>
+
+    <!-- Quiz Mode -->
+    <string name="quiz_title">Тренировка</string>
+    <string name="quiz_instruction">Подумайте о рациональном ответе на эту мысль</string>
+    <string name="quiz_reveal">Показать ответ</string>
+    <string name="quiz_knew_it">Знал(а) ✓</string>
+    <string name="quiz_didnt_know">Не вспомнил(а) ✗</string>
+    <string name="quiz_complete_title">Тренировка завершена!</string>
+    <string name="quiz_complete_score">Результат: %1$d из %2$d</string>
+    <string name="quiz_restart">Ещё раз</string>
+    <string name="quiz_finish">Готово</string>
+    <string name="quiz_progress">%1$d / %2$d</string>
+    <string name="quiz_empty">Добавьте хотя бы одну карточку для тренировки</string>
+
+    <!-- Predefined Strategies -->
+    <string name="strategy_breathing_478">Дыхание 4–7–8</string>
+    <string name="strategy_breathing_478_desc">Вдох 4 сек → задержка 7 сек → выдох 8 сек</string>
+    <string name="strategy_breathing_box">Квадратное дыхание</string>
+    <string name="strategy_breathing_box_desc">Вдох 4 сек → пауза 4 сек → выдох 4 сек → пауза 4 сек</string>
+    <string name="strategy_grounding">Заземление 5–4–3–2–1</string>
+    <string name="strategy_grounding_desc">5 вижу, 4 слышу, 3 касаюсь, 2 чувствую запах, 1 вкус</string>
+    <string name="strategy_fact_vs_fear">Факт vs Страх</string>
+    <string name="strategy_fact_vs_fear_desc">Запишите факты отдельно от страхов — что реально?</string>
+    <string name="strategy_reframe">Переосмысление</string>
+    <string name="strategy_reframe_desc">Как бы вы объяснили ситуацию близкому другу?</string>
+    <string name="strategy_self_compassion">Самосострадание</string>
+    <string name="strategy_self_compassion_desc">Что бы вы сказали другу в такой ситуации?</string>
+    <string name="strategy_behavioral">Поведенческая активация</string>
+    <string name="strategy_behavioral_desc">Сделайте одно конкретное действие прямо сейчас</string>
+    <string name="strategy_distraction">Отвлечение</string>
+    <string name="strategy_distraction_desc">Переключите внимание: музыка, прогулка, творчество</string>
+
+    <!-- Predefined Tags -->
+    <string name="tag_anxiety">Тревога</string>
+    <string name="tag_depression">Подавленность</string>
+    <string name="tag_anger">Гнев</string>
+    <string name="tag_procrastination">Прокрастинация</string>
+    <string name="tag_self_criticism">Самокритика</string>
+    <string name="tag_social">Социальное</string>
+    <string name="tag_work">Работа</string>
+    <string name="tag_relationships">Отношения</string>
+
+    <!-- Delete -->
+    <string name="delete_card_title">Удалить карточку?</string>
+    <string name="delete_card_message">Карточка будет удалена без возможности восстановления.</string>
+    <string name="action_delete">Удалить</string>
+    <string name="action_cancel">Отмена</string>
+    <string name="cd_back">Назад</string>
+</resources>

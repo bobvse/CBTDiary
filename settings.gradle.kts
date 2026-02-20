@@ -22,4 +22,5 @@ dependencyResolutionManagement {
 rootProject.name = "CBTDiary"
 include(":app")
 include(":auth")
+include(":copingcards")
  

@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +18,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.cbtdiary.auth.ui.AuthScreen
+import com.example.cbtdiary.copingcards.ui.CopingCardDetailScreen
+import com.example.cbtdiary.copingcards.ui.CopingCardEditorScreen
+import com.example.cbtdiary.copingcards.ui.CopingCardQuizScreen
+import com.example.cbtdiary.copingcards.ui.CopingCardsViewModel
 import com.example.cbtdiary.ui.screen.conceptualization.ConceptualizationEditScreen
 import com.example.cbtdiary.ui.screen.conceptualization.SmerImportSheet
 import com.example.cbtdiary.ui.screen.conceptualization.VersionHistoryScreen
@@ -34,7 +39,21 @@ sealed class Screen(val route: String) {
     }
     data object ConceptEdit : Screen("concept_edit")
     data object ConceptHistory : Screen("concept_history")
+    data object CopingCardDetail : Screen("coping_detail/{cardId}") {
+        fun createRoute(cardId: Long) = "coping_detail/$cardId"
+    }
+    data object CopingCardEditor : Screen("coping_editor")
+    data object CopingCardQuiz : Screen("coping_quiz")
 }
+
+private val slideInFromEnd = spring<IntOffset>(
+    dampingRatio = Spring.DampingRatioLowBouncy,
+    stiffness = Spring.StiffnessMediumLow
+)
+private val slideOutToEnd = spring<IntOffset>(
+    dampingRatio = Spring.DampingRatioNoBouncy,
+    stiffness = Spring.StiffnessMedium
+)
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -62,106 +81,54 @@ fun NavGraph(navController: NavHostController) {
             exitTransition = { fadeOut(spring(stiffness = Spring.StiffnessMedium)) }
         ) { backStackEntry ->
             val conceptViewModel: ConceptualizationViewModel = hiltViewModel(backStackEntry)
+            val copingViewModel: CopingCardsViewModel = hiltViewModel(backStackEntry)
 
             MainScreen(
                 conceptViewModel = conceptViewModel,
-                onNavigateToNewEntry = {
-                    navController.navigate(Screen.NewEntry.route)
-                },
-                onNavigateToViewEntry = { entryId ->
-                    navController.navigate(Screen.ViewEntry.createRoute(entryId))
-                },
-                onNavigateToConceptEdit = {
-                    navController.navigate(Screen.ConceptEdit.route)
-                },
-                onNavigateToConceptHistory = {
-                    navController.navigate(Screen.ConceptHistory.route)
-                }
+                copingViewModel = copingViewModel,
+                onNavigateToNewEntry = { navController.navigate(Screen.NewEntry.route) },
+                onNavigateToViewEntry = { entryId -> navController.navigate(Screen.ViewEntry.createRoute(entryId)) },
+                onNavigateToConceptEdit = { navController.navigate(Screen.ConceptEdit.route) },
+                onNavigateToConceptHistory = { navController.navigate(Screen.ConceptHistory.route) },
+                onNavigateToCopingDetail = { cardId -> navController.navigate(Screen.CopingCardDetail.createRoute(cardId)) },
+                onNavigateToCopingEditor = { navController.navigate(Screen.CopingCardEditor.route) },
+                onNavigateToCopingQuiz = { navController.navigate(Screen.CopingCardQuiz.route) }
             )
         }
 
         composable(
             route = Screen.NewEntry.route,
             enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Up,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    )
-                ) + fadeIn()
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, slideInFromEnd) + fadeIn()
             },
             exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Down,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    )
-                ) + fadeOut()
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, slideOutToEnd) + fadeOut()
             }
         ) {
-            EntryScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
-            )
+            EntryScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(
             route = Screen.ViewEntry.route,
-            arguments = listOf(
-                navArgument("entryId") {
-                    type = NavType.LongType
-                }
-            ),
+            arguments = listOf(navArgument("entryId") { type = NavType.LongType }),
             enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    )
-                ) + fadeIn()
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, slideInFromEnd) + fadeIn()
             },
             exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.End,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    )
-                ) + fadeOut()
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, slideOutToEnd) + fadeOut()
             }
         ) { backStackEntry ->
             val entryId = backStackEntry.arguments?.getLong("entryId") ?: 0L
-            ViewEntryScreen(
-                entryId = entryId,
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
-            )
+            ViewEntryScreen(entryId = entryId, onNavigateBack = { navController.popBackStack() })
         }
 
         composable(
             route = Screen.ConceptEdit.route,
             enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    )
-                ) + fadeIn()
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, slideInFromEnd) + fadeIn()
             },
             exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.End,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    )
-                ) + fadeOut()
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, slideOutToEnd) + fadeOut()
             }
         ) {
             val mainEntry = navController.getBackStackEntry(Screen.Main.route)
@@ -173,41 +140,82 @@ fun NavGraph(navController: NavHostController) {
                 onNavigateBack = { navController.popBackStack() },
                 onOpenSmerImport = { showSmerImport = true }
             )
-
             if (showSmerImport) {
-                SmerImportSheet(
-                    viewModel = conceptViewModel,
-                    onDismiss = { showSmerImport = false }
-                )
+                SmerImportSheet(viewModel = conceptViewModel, onDismiss = { showSmerImport = false })
             }
         }
 
         composable(
             route = Screen.ConceptHistory.route,
             enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    )
-                ) + fadeIn()
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, slideInFromEnd) + fadeIn()
             },
             exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.End,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    )
-                ) + fadeOut()
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, slideOutToEnd) + fadeOut()
             }
         ) {
             val mainEntry = navController.getBackStackEntry(Screen.Main.route)
             val conceptViewModel: ConceptualizationViewModel = hiltViewModel(mainEntry)
+            VersionHistoryScreen(viewModel = conceptViewModel, onNavigateBack = { navController.popBackStack() })
+        }
 
-            VersionHistoryScreen(
-                viewModel = conceptViewModel,
+        // Coping Card routes
+        composable(
+            route = Screen.CopingCardDetail.route,
+            arguments = listOf(navArgument("cardId") { type = NavType.LongType }),
+            enterTransition = {
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, slideInFromEnd) + fadeIn()
+            },
+            exitTransition = {
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, slideOutToEnd) + fadeOut()
+            }
+        ) { backStackEntry ->
+            val cardId = backStackEntry.arguments?.getLong("cardId") ?: 0L
+            val mainEntry = navController.getBackStackEntry(Screen.Main.route)
+            val copingViewModel: CopingCardsViewModel = hiltViewModel(mainEntry)
+
+            CopingCardDetailScreen(
+                cardId = cardId,
+                viewModel = copingViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEdit = {
+                    navController.navigate(Screen.CopingCardEditor.route)
+                }
+            )
+        }
+
+        composable(
+            route = Screen.CopingCardEditor.route,
+            enterTransition = {
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, slideInFromEnd) + fadeIn()
+            },
+            exitTransition = {
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, slideOutToEnd) + fadeOut()
+            }
+        ) {
+            val mainEntry = navController.getBackStackEntry(Screen.Main.route)
+            val copingViewModel: CopingCardsViewModel = hiltViewModel(mainEntry)
+
+            CopingCardEditorScreen(
+                viewModel = copingViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.CopingCardQuiz.route,
+            enterTransition = {
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, slideInFromEnd) + fadeIn()
+            },
+            exitTransition = {
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, slideOutToEnd) + fadeOut()
+            }
+        ) {
+            val mainEntry = navController.getBackStackEntry(Screen.Main.route)
+            val copingViewModel: CopingCardsViewModel = hiltViewModel(mainEntry)
+
+            CopingCardQuizScreen(
+                viewModel = copingViewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

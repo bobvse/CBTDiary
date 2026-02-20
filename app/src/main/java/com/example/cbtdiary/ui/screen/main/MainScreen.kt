@@ -37,8 +37,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cbtdiary.R
+import com.example.cbtdiary.copingcards.ui.CopingCardsScreen
+import com.example.cbtdiary.copingcards.ui.CopingCardsViewModel
 import com.example.cbtdiary.ui.screen.conceptualization.ConceptualizationScreen
-import com.example.cbtdiary.ui.screen.copingcards.CopingCardsScreen
 import com.example.cbtdiary.ui.screen.history.HistoryScreen
 import com.example.cbtdiary.ui.theme.CBTDiaryTheme
 import com.example.cbtdiary.ui.viewmodel.ConceptualizationViewModel
@@ -56,10 +57,14 @@ enum class MainTab(
 @Composable
 fun MainScreen(
     conceptViewModel: ConceptualizationViewModel,
+    copingViewModel: CopingCardsViewModel,
     onNavigateToNewEntry: () -> Unit,
     onNavigateToViewEntry: (Long) -> Unit,
     onNavigateToConceptEdit: () -> Unit,
-    onNavigateToConceptHistory: () -> Unit
+    onNavigateToConceptHistory: () -> Unit,
+    onNavigateToCopingDetail: (Long) -> Unit,
+    onNavigateToCopingEditor: () -> Unit,
+    onNavigateToCopingQuiz: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
@@ -132,7 +137,12 @@ fun MainScreen(
                     },
                     onNavigateToHistory = onNavigateToConceptHistory
                 )
-                2 -> CopingCardsScreen()
+                2 -> CopingCardsScreen(
+                    viewModel = copingViewModel,
+                    onNavigateToEditor = onNavigateToCopingEditor,
+                    onNavigateToDetail = onNavigateToCopingDetail,
+                    onNavigateToQuiz = onNavigateToCopingQuiz
+                )
             }
         }
     }
@@ -142,7 +152,6 @@ fun MainScreen(
 @Composable
 private fun MainScreenPreview() {
     CBTDiaryTheme {
-        // Preview without ViewModel - just show the layout structure
         Scaffold(
             bottomBar = {
                 NavigationBar(

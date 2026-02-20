@@ -47,6 +47,7 @@ kapt {
 
 dependencies {
     implementation(project(":auth"))
+    implementation(project(":copingcards"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

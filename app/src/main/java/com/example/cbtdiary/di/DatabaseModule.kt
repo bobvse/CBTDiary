@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.cbtdiary.data.local.DiaryDatabase
 import com.example.cbtdiary.data.local.dao.ConceptualizationDao
+import com.example.cbtdiary.data.local.dao.CopingCardDao
 import com.example.cbtdiary.data.local.dao.DiaryEntryDao
 import dagger.Module
 import dagger.Provides
@@ -36,5 +37,10 @@ object DatabaseModule {
     @Provides
     fun provideConceptualizationDao(database: DiaryDatabase): ConceptualizationDao {
         return database.conceptualizationDao()
+    }
+
+    @Provides
+    fun provideCopingCardDao(database: DiaryDatabase): CopingCardDao {
+        return database.copingCardDao()
     }
 }
