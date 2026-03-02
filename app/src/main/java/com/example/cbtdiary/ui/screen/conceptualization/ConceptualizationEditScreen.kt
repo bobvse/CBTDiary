@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -137,6 +138,7 @@ fun ConceptualizationEditScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
+            onSave = { viewModel.requestSave() },
             onUpdateBackground = viewModel::updateBackground,
             onUpdateCoreBeliefs = viewModel::updateCoreBeliefs,
             onUpdateIntermediateBeliefs = viewModel::updateIntermediateBeliefs,
@@ -156,6 +158,7 @@ fun ConceptualizationEditScreen(
 private fun EditorContent(
     state: EditorState,
     modifier: Modifier = Modifier,
+    onSave: () -> Unit,
     onUpdateBackground: (List<BackgroundEvent>) -> Unit,
     onUpdateCoreBeliefs: (List<CoreBelief>) -> Unit,
     onUpdateIntermediateBeliefs: (List<IntermediateBelief>) -> Unit,
@@ -355,7 +358,33 @@ private fun EditorContent(
             }
         }
 
-        item { Spacer(modifier = Modifier.height(24.dp)) }
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onSave,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp)
+                    .height(52.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Icon(
+                    Icons.Filled.Save,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.editor_save),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
     }
 }
 
@@ -1053,6 +1082,7 @@ private fun EditorContentPreview() {
                 )
             ),
             modifier = Modifier.fillMaxSize(),
+            onSave = {},
             onUpdateBackground = {},
             onUpdateCoreBeliefs = {},
             onUpdateIntermediateBeliefs = {},

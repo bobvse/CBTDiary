@@ -9,8 +9,14 @@
     <string name="coping_filter_favorites">Избранные</string>
     <string name="coping_card_count">%1$d / 50</string>
     <string name="coping_tap_to_flip">Нажмите чтобы перевернуть</string>
-    <string name="coping_used_times">Использовано: %1$d раз</string>
+    <string name="coping_used_times">Помогло %1$d раз</string>
     <string name="coping_used_now">Использовать</string>
+    <string name="coping_helped_me">Мне помогло</string>
+    <string name="coping_recorded">Записано ✓</string>
+    <string name="coping_helped_count">Помогло %1$d раз</string>
+    <string name="coping_front_label">Негативная мысль</string>
+    <string name="coping_back_label">Рациональный ответ</string>
+    <string name="coping_strategies_label">Стратегии:</string>
     <string name="cd_add_card">Добавить карточку</string>
     <string name="cd_quiz_mode">Режим тренировки</string>
     <string name="cd_favorite">В избранное</string>

@@ -83,7 +83,7 @@ import java.util.Locale
 
 @Composable
 fun HistoryScreen(
-    onNavigateToNewEntry: () -> Unit,
+    onNavigateToNewEntry: (Long) -> Unit,
     onNavigateToViewEntry: (Long) -> Unit,
     onNavigateToEdit: (Long) -> Unit = {},
     viewModel: HistoryViewModel = hiltViewModel()
@@ -106,7 +106,7 @@ fun HistoryScreen(
 @Composable
 fun HistoryScreenContent(
     uiState: HistoryUiState,
-    onNavigateToNewEntry: () -> Unit,
+    onNavigateToNewEntry: (Long) -> Unit,
     onNavigateToViewEntry: (Long) -> Unit,
     onNavigateToEdit: (Long) -> Unit = {},
     onSelectDate: (LocalDate) -> Unit,
@@ -150,7 +150,13 @@ fun HistoryScreenContent(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onNavigateToNewEntry,
+                onClick = {
+                    val selectedMillis = uiState.selectedDate
+                        .atStartOfDay(ZoneId.systemDefault())
+                        .toInstant()
+                        .toEpochMilli()
+                    onNavigateToNewEntry(selectedMillis)
+                },
                 containerColor = MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(16.dp)
             ) {
@@ -734,7 +740,7 @@ private fun HistoryScreenPreview() {
                     )
                 )
             ),
-            onNavigateToNewEntry = {},
+            onNavigateToNewEntry = { _ -> },
             onNavigateToViewEntry = {},
             onNavigateToEdit = {},
             onSelectDate = {},
@@ -751,7 +757,7 @@ private fun HistoryScreenEmptyPreview() {
     CBTDiaryTheme {
         HistoryScreenContent(
             uiState = HistoryUiState(),
-            onNavigateToNewEntry = {},
+            onNavigateToNewEntry = { _ -> },
             onNavigateToViewEntry = {},
             onNavigateToEdit = {},
             onSelectDate = {},

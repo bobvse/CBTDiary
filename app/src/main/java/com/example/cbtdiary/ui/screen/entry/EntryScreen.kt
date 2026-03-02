@@ -95,12 +95,17 @@ private fun capitalizeFirstChar(text: String): String {
 fun EntryScreen(
     onNavigateBack: () -> Unit,
     entryId: Long? = null,
+    initialDate: Long? = null,
     viewModel: EntryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(entryId) {
         entryId?.let { viewModel.loadEntry(it) }
+    }
+
+    LaunchedEffect(initialDate) {
+        initialDate?.let { viewModel.updateSelectedDate(it) }
     }
 
     LaunchedEffect(Unit) {

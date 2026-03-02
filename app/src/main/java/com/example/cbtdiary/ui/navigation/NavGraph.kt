@@ -33,7 +33,11 @@ import com.example.cbtdiary.ui.viewmodel.ConceptualizationViewModel
 sealed class Screen(val route: String) {
     data object Auth : Screen("auth")
     data object Main : Screen("main")
-    data object NewEntry : Screen("new_entry")
+    data object NewEntry : Screen("new_entry?date={date}") {
+        fun createRoute(date: Long? = null): String {
+            return if (date != null) "new_entry?date=$date" else "new_entry"
+        }
+    }
     data object ViewEntry : Screen("view_entry/{entryId}") {
         fun createRoute(entryId: Long) = "view_entry/$entryId"
     }
@@ -89,7 +93,7 @@ fun NavGraph(navController: NavHostController) {
             MainScreen(
                 conceptViewModel = conceptViewModel,
                 copingViewModel = copingViewModel,
-                onNavigateToNewEntry = { navController.navigate(Screen.NewEntry.route) },
+                onNavigateToNewEntry = { date -> navController.navigate(Screen.NewEntry.createRoute(date)) },
                 onNavigateToViewEntry = { entryId -> navController.navigate(Screen.ViewEntry.createRoute(entryId)) },
                 onNavigateToEdit = { entryId -> navController.navigate(Screen.EditEntry.createRoute(entryId)) },
                 onNavigateToConceptEdit = { navController.navigate(Screen.ConceptEdit.route) },
@@ -101,15 +105,23 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable(
-            route = Screen.NewEntry.route,
+            route = "new_entry?date={date}",
+            arguments = listOf(navArgument("date") {
+                type = NavType.LongType
+                defaultValue = -1L
+            }),
             enterTransition = {
                 slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, slideInFromEnd) + fadeIn()
             },
             exitTransition = {
                 slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, slideOutToEnd) + fadeOut()
             }
-        ) {
-            EntryScreen(onNavigateBack = { navController.popBackStack() })
+        ) { backStackEntry ->
+            val initialDate = backStackEntry.arguments?.getLong("date", -1L) ?: -1L
+            EntryScreen(
+                onNavigateBack = { navController.popBackStack() },
+                initialDate = if (initialDate > 0) initialDate else null
+            )
         }
 
         composable(

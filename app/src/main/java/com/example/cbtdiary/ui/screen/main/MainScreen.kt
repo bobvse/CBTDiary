@@ -58,7 +58,7 @@ enum class MainTab(
 fun MainScreen(
     conceptViewModel: ConceptualizationViewModel,
     copingViewModel: CopingCardsViewModel,
-    onNavigateToNewEntry: () -> Unit,
+    onNavigateToNewEntry: (Long) -> Unit,
     onNavigateToViewEntry: (Long) -> Unit,
     onNavigateToConceptEdit: () -> Unit,
     onNavigateToConceptHistory: () -> Unit,
